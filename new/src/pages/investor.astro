@@ -1,0 +1,149 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { t } from '../i18n/translations';
+---
+
+<Layout title="Montierra — Инвеститор | Investor">
+  <Header currentPage="investor" />
+
+  <main class="flex-1">
+    <!-- Hero -->
+    <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-charcoal overflow-hidden">
+      <div class="absolute inset-0 opacity-10">
+        <svg class="absolute bottom-0 w-full h-1/2" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#c9a96e" d="M0,160L120,170.7C240,181,480,203,720,197.3C960,192,1200,160,1320,144L1440,128L1440,320L0,320Z" />
+        </svg>
+      </div>
+      <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+        <p class="text-gold text-sm uppercase tracking-[0.3em] mb-4 reveal">Montierra</p>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-white mb-6 reveal reveal-delay-1">
+          <span data-lang-bg>{t.investor.hero.title.bg}</span>
+          <span data-lang-en>{t.investor.hero.title.en}</span>
+        </h1>
+        <p class="text-lg text-white/60 max-w-2xl mx-auto reveal reveal-delay-2">
+          <span data-lang-bg>{t.investor.hero.subtitle.bg}</span>
+          <span data-lang-en>{t.investor.hero.subtitle.en}</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- About the Investor -->
+    <section class="py-20 md:py-28 bg-cream">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div class="reveal">
+            <p class="text-gold text-sm uppercase tracking-[0.2em] mb-4">
+              <span data-lang-bg>Опит и надеждност</span>
+              <span data-lang-en>Experience & Reliability</span>
+            </p>
+            <h2 class="text-3xl md:text-4xl font-heading font-semibold text-charcoal mb-6">
+              <span data-lang-bg>{t.investor.about.title.bg}</span>
+              <span data-lang-en>{t.investor.about.title.en}</span>
+            </h2>
+            <p class="text-stone leading-relaxed text-lg">
+              <span data-lang-bg>{t.investor.about.text.bg}</span>
+              <span data-lang-en>{t.investor.about.text.en}</span>
+            </p>
+          </div>
+          <div class="aspect-[4/3] bg-gradient-to-br from-charcoal-light to-charcoal rounded-sm overflow-hidden reveal reveal-delay-1">
+            <div class="w-full h-full flex items-center justify-center text-gold/20">
+              <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Invest -->
+    <section class="py-20 md:py-28 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 reveal">
+          <p class="text-gold text-sm uppercase tracking-[0.2em] mb-4">
+            <span data-lang-bg>Предимства</span>
+            <span data-lang-en>Advantages</span>
+          </p>
+          <h2 class="text-3xl md:text-4xl font-heading font-semibold text-charcoal">
+            <span data-lang-bg>{t.investor.whyInvest.title.bg}</span>
+            <span data-lang-en>{t.investor.whyInvest.title.en}</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {t.investor.whyInvest.points.map((point, i) => (
+            <div class={`p-8 border border-cream-dark rounded-sm hover:border-gold/30 transition-colors reveal reveal-delay-${i + 1}`}>
+              <div class="flex items-start gap-4">
+                <span class="text-gold font-heading text-2xl font-bold shrink-0">0{i + 1}</span>
+                <div>
+                  <h3 class="text-xl font-heading font-semibold text-charcoal mb-3">
+                    <span data-lang-bg>{point.title.bg}</span>
+                    <span data-lang-en>{point.title.en}</span>
+                  </h3>
+                  <p class="text-stone leading-relaxed">
+                    <span data-lang-bg>{point.desc.bg}</span>
+                    <span data-lang-en>{point.desc.en}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Quality Guarantee -->
+    <section class="py-20 md:py-28 bg-cream">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div class="order-2 lg:order-1 aspect-[4/3] bg-gradient-to-br from-cream-dark to-white rounded-sm overflow-hidden reveal">
+            <div class="w-full h-full flex items-center justify-center text-gold/30">
+              <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+          </div>
+          <div class="order-1 lg:order-2 reveal reveal-delay-1">
+            <p class="text-gold text-sm uppercase tracking-[0.2em] mb-4">
+              <span data-lang-bg>Качество</span>
+              <span data-lang-en>Quality</span>
+            </p>
+            <h2 class="text-3xl md:text-4xl font-heading font-semibold text-charcoal mb-6">
+              <span data-lang-bg>{t.investor.quality.title.bg}</span>
+              <span data-lang-en>{t.investor.quality.title.en}</span>
+            </h2>
+            <p class="text-stone leading-relaxed text-lg">
+              <span data-lang-bg>{t.investor.quality.text.bg}</span>
+              <span data-lang-en>{t.investor.quality.text.en}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 md:py-28 bg-charcoal text-center">
+      <div class="max-w-3xl mx-auto px-4 reveal">
+        <h2 class="text-3xl md:text-4xl font-heading font-semibold text-white mb-6">
+          <span data-lang-bg>{t.investor.cta.title.bg}</span>
+          <span data-lang-en>{t.investor.cta.title.en}</span>
+        </h2>
+        <p class="text-white/60 mb-8 text-lg">
+          <span data-lang-bg>{t.investor.cta.text.bg}</span>
+          <span data-lang-en>{t.investor.cta.text.en}</span>
+        </p>
+        <a
+          href="/contacts/"
+          class="inline-block px-8 py-4 bg-gold text-charcoal font-semibold text-sm uppercase tracking-wider hover:bg-gold-light transition-all duration-300"
+        >
+          <span data-lang-bg>{t.investor.cta.button.bg}</span>
+          <span data-lang-en>{t.investor.cta.button.en}</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>

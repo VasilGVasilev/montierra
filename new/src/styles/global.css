@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color palette — luxury & elegant */
+  --color-charcoal: #1a1a2e;
+  --color-charcoal-light: #2d2d44;
+  --color-gold: #c9a96e;
+  --color-gold-light: #d4bc8b;
+  --color-gold-dark: #b08d4f;
+  --color-cream: #f5f0e8;
+  --color-cream-dark: #e8e0d0;
+  --color-stone: #8a8a8a;
+  --color-stone-light: #b0b0b0;
+  --color-white: #ffffff;
+  --color-dark: #0f0f1a;
+  --color-success: #4a7c59;
+  --color-reserved: #c9a96e;
+  --color-sold: #8b3a3a;
+
+  /* Fonts */
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ===== Language toggle via CSS ===== */
+html[data-lang="en"] [data-lang-bg] {
+  display: none !important;
+}
+html[data-lang="bg"] [data-lang-en] {
+  display: none !important;
+}
+
+/* ===== Base styles ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-charcoal);
+  background-color: var(--color-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+/* ===== Scroll animations ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ===== Utility ===== */
+.gold-gradient {
+  background: linear-gradient(135deg, var(--color-gold-dark), var(--color-gold), var(--color-gold-light));
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, var(--color-gold-dark), var(--color-gold), var(--color-gold-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

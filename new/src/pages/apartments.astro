@@ -1,0 +1,548 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { t } from '../i18n/translations';
+import { apartments, garages, apartmentTypes, statusOptions } from '../data/apartments';
+---
+
+<Layout title="Montierra — Апартаменти | Apartments">
+  <Header currentPage="apartments" />
+
+  <main class="flex-1">
+    <!-- Hero -->
+    <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-charcoal overflow-hidden">
+      <div class="absolute inset-0 opacity-10">
+        <svg class="absolute bottom-0 w-full h-1/2" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#c9a96e" d="M0,224L60,213.3C120,203,240,181,360,181.3C480,181,600,203,720,202.7C840,203,960,181,1080,181.3C1200,181,1320,203,1380,213.3L1440,224L1440,320L0,320Z" />
+        </svg>
+      </div>
+      <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+        <p class="text-gold text-sm uppercase tracking-[0.3em] mb-4 reveal">Montierra</p>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-white mb-6 reveal reveal-delay-1">
+          <span data-lang-bg>{t.apartments.hero.title.bg}</span>
+          <span data-lang-en>{t.apartments.hero.title.en}</span>
+        </h1>
+        <p class="text-lg text-white/60 max-w-2xl mx-auto reveal reveal-delay-2">
+          <span data-lang-bg>{t.apartments.hero.subtitle.bg}</span>
+          <span data-lang-en>{t.apartments.hero.subtitle.en}</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Floor Selector -->
+    <section class="py-12 md:py-16 bg-white border-b border-cream-dark">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-xl font-heading font-semibold text-charcoal text-center mb-8 reveal">
+          <span data-lang-bg>{t.apartments.floorSelector.title.bg}</span>
+          <span data-lang-en>{t.apartments.floorSelector.title.en}</span>
+        </h2>
+        <div class="flex flex-col items-center gap-2 reveal reveal-delay-1" id="floor-selector">
+          <!-- Visual building representation -->
+          <div class="w-full max-w-md">
+            {[4, 3, 2, 1].map((floor) => {
+              const floorApts = apartments.filter(a => a.floor === floor);
+              return (
+                <button
+                  data-floor={floor}
+                  class="floor-btn w-full flex items-center gap-3 p-3 border border-cream-dark hover:border-gold/50 transition-all group mb-1 rounded-sm"
+                >
+                  <span class="text-sm font-heading font-semibold text-charcoal w-16 shrink-0">
+                    <span data-lang-bg>Етаж {floor}</span>
+                    <span data-lang-en>Floor {floor}</span>
+                  </span>
+                  <div class="flex-1 flex gap-2">
+                    {floorApts.map((apt) => (
+                      <div
+                        class:list={[
+                          'flex-1 h-10 rounded-sm flex items-center justify-center text-xs font-medium transition-colors',
+                          apt.status === 'available' ? 'bg-success/10 text-success border border-success/20' :
+                          apt.status === 'reserved' ? 'bg-reserved/10 text-reserved border border-reserved/20' :
+                          'bg-sold/10 text-sold border border-sold/20',
+                        ]}
+                      >
+                        {apt.number}
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+            <!-- Underground garages -->
+            <button
+              data-floor="0"
+              class="floor-btn w-full flex items-center gap-3 p-3 border border-cream-dark hover:border-gold/50 transition-all group mt-2 rounded-sm bg-charcoal/5"
+            >
+              <span class="text-sm font-heading font-semibold text-charcoal w-16 shrink-0">
+                <span data-lang-bg>-1</span>
+                <span data-lang-en>-1</span>
+              </span>
+              <div class="flex-1 flex gap-1">
+                {garages.map((g) => (
+                  <div
+                    class:list={[
+                      'flex-1 h-8 rounded-sm flex items-center justify-center text-[10px] font-medium transition-colors',
+                      g.status === 'available' ? 'bg-success/10 text-success border border-success/20' :
+                      g.status === 'reserved' ? 'bg-reserved/10 text-reserved border border-reserved/20' :
+                      'bg-sold/10 text-sold border border-sold/20',
+                    ]}
+                  >
+                    {g.number}
+                  </div>
+                ))}
+              </div>
+            </button>
+          </div>
+          <!-- Legend -->
+          <div class="flex flex-wrap gap-4 mt-4 text-xs text-stone">
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-sm bg-success/20 border border-success/30"></div>
+              <span data-lang-bg>{t.apartments.filter.available.bg}</span>
+              <span data-lang-en>{t.apartments.filter.available.en}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-sm bg-reserved/20 border border-reserved/30"></div>
+              <span data-lang-bg>{t.apartments.filter.reserved.bg}</span>
+              <span data-lang-en>{t.apartments.filter.reserved.en}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-sm bg-sold/20 border border-sold/30"></div>
+              <span data-lang-bg>{t.apartments.filter.sold.bg}</span>
+              <span data-lang-en>{t.apartments.filter.sold.en}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters & Apartment Cards -->
+    <section class="py-12 md:py-16 bg-cream">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap gap-4 mb-10 reveal" id="filter-bar">
+          <!-- Type filter -->
+          <div class="flex flex-wrap gap-2">
+            <span class="text-sm text-stone self-center mr-2">
+              <span data-lang-bg>{t.apartments.filter.type.bg}:</span>
+              <span data-lang-en>{t.apartments.filter.type.en}:</span>
+            </span>
+            {apartmentTypes.map((type) => (
+              <button
+                data-filter-type={type.value}
+                class:list={[
+                  'filter-type-btn px-4 py-2 text-sm border rounded-sm transition-all',
+                  type.value === 'all'
+                    ? 'bg-charcoal text-white border-charcoal'
+                    : 'bg-white text-charcoal border-cream-dark hover:border-gold/50',
+                ]}
+              >
+                <span data-lang-bg>{type.label.bg}</span>
+                <span data-lang-en>{type.label.en}</span>
+              </button>
+            ))}
+          </div>
+
+          <!-- Status filter -->
+          <div class="flex flex-wrap gap-2">
+            <span class="text-sm text-stone self-center mr-2">
+              <span data-lang-bg>{t.apartments.filter.status.bg}:</span>
+              <span data-lang-en>{t.apartments.filter.status.en}:</span>
+            </span>
+            {statusOptions.map((status) => (
+              <button
+                data-filter-status={status.value}
+                class:list={[
+                  'filter-status-btn px-4 py-2 text-sm border rounded-sm transition-all',
+                  status.value === 'all'
+                    ? 'bg-charcoal text-white border-charcoal'
+                    : 'bg-white text-charcoal border-cream-dark hover:border-gold/50',
+                ]}
+              >
+                <span data-lang-bg>{status.label.bg}</span>
+                <span data-lang-en>{status.label.en}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Apartment Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="apartments-grid">
+          {apartments.map((apt, i) => (
+            <div
+              class={`apartment-card bg-white rounded-sm overflow-hidden border border-cream-dark hover:border-gold/30 hover:shadow-lg transition-all reveal reveal-delay-${(i % 4) + 1}`}
+              data-type={apt.type}
+              data-status={apt.status}
+              data-floor={apt.floor}
+            >
+              <!-- Top section with apartment visual -->
+              <div class="relative h-40 bg-gradient-to-br from-charcoal-light to-charcoal flex items-center justify-center">
+                <span class="text-3xl font-heading font-bold text-gold/40">{apt.number}</span>
+                <!-- Status badge -->
+                <div
+                  class:list={[
+                    'absolute top-3 right-3 px-2.5 py-1 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
+                    apt.status === 'available' ? 'bg-success/90 text-white' :
+                    apt.status === 'reserved' ? 'bg-reserved/90 text-white' :
+                    'bg-sold/90 text-white',
+                  ]}
+                >
+                  <span data-lang-bg>
+                    {apt.status === 'available' ? t.apartments.filter.available.bg :
+                     apt.status === 'reserved' ? t.apartments.filter.reserved.bg :
+                     t.apartments.filter.sold.bg}
+                  </span>
+                  <span data-lang-en>
+                    {apt.status === 'available' ? t.apartments.filter.available.en :
+                     apt.status === 'reserved' ? t.apartments.filter.reserved.en :
+                     t.apartments.filter.sold.en}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Info -->
+              <div class="p-5">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-lg font-heading font-semibold text-charcoal">
+                    <span data-lang-bg>Ап. {apt.number}</span>
+                    <span data-lang-en>Apt. {apt.number}</span>
+                  </h3>
+                  <span class="text-sm text-stone">
+                    <span data-lang-bg>{apt.typeLabel.bg}</span>
+                    <span data-lang-en>{apt.typeLabel.en}</span>
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+                  <div>
+                    <p class="text-stone text-xs uppercase tracking-wider">
+                      <span data-lang-bg>{t.apartments.card.floor.bg}</span>
+                      <span data-lang-en>{t.apartments.card.floor.en}</span>
+                    </p>
+                    <p class="font-semibold text-charcoal">{apt.floor}</p>
+                  </div>
+                  <div>
+                    <p class="text-stone text-xs uppercase tracking-wider">
+                      <span data-lang-bg>{t.apartments.card.area.bg}</span>
+                      <span data-lang-en>{t.apartments.card.area.en}</span>
+                    </p>
+                    <p class="font-semibold text-charcoal">{apt.area} m²</p>
+                  </div>
+                  <div>
+                    <p class="text-stone text-xs uppercase tracking-wider">
+                      <span data-lang-bg>{t.apartments.card.rooms.bg}</span>
+                      <span data-lang-en>{t.apartments.card.rooms.en}</span>
+                    </p>
+                    <p class="font-semibold text-charcoal">{apt.rooms}</p>
+                  </div>
+                  <div>
+                    <p class="text-stone text-xs uppercase tracking-wider">
+                      <span data-lang-bg>{t.apartments.card.price.bg}</span>
+                      <span data-lang-en>{t.apartments.card.price.en}</span>
+                    </p>
+                    <p class="font-semibold text-charcoal">
+                      {apt.price
+                        ? `€${apt.price.toLocaleString()}`
+                        : (() => null)()}
+                      {!apt.price && (
+                        <>
+                          <span data-lang-bg class="text-xs">{t.apartments.card.priceOnRequest.bg}</span>
+                          <span data-lang-en class="text-xs">{t.apartments.card.priceOnRequest.en}</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  class="apartment-detail-btn w-full py-2.5 text-sm font-medium uppercase tracking-wider border border-gold text-gold hover:bg-gold hover:text-charcoal transition-all rounded-sm"
+                  data-apartment-id={apt.id}
+                >
+                  <span data-lang-bg>{t.apartments.card.details.bg}</span>
+                  <span data-lang-en>{t.apartments.card.details.en}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <!-- No results message -->
+        <div id="no-results" class="hidden text-center py-16">
+          <p class="text-stone text-lg">
+            <span data-lang-bg>Няма намерени апартаменти по зададените критерии.</span>
+            <span data-lang-en>No apartments found matching the selected criteria.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Garages Section -->
+    <section class="py-12 md:py-16 bg-white">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-heading font-semibold text-charcoal text-center mb-4 reveal">
+          <span data-lang-bg>{t.apartments.garages.title.bg}</span>
+          <span data-lang-en>{t.apartments.garages.title.en}</span>
+        </h2>
+        <p class="text-stone text-center mb-10 reveal reveal-delay-1">
+          <span data-lang-bg>{t.apartments.garages.subtitle.bg}</span>
+          <span data-lang-en>{t.apartments.garages.subtitle.en}</span>
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {garages.map((g, i) => (
+            <div class={`p-4 border border-cream-dark rounded-sm text-center reveal reveal-delay-${(i % 4) + 1}`}>
+              <p class="text-lg font-heading font-semibold text-charcoal mb-1">{g.number}</p>
+              <p class="text-sm text-stone">{g.area} m²</p>
+              <p class="text-sm font-semibold text-charcoal mt-1">
+                {g.price ? `€${g.price.toLocaleString()}` : '—'}
+              </p>
+              <span
+                class:list={[
+                  'inline-block mt-2 px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
+                  g.status === 'available' ? 'bg-success/10 text-success' :
+                  g.status === 'reserved' ? 'bg-reserved/10 text-reserved' :
+                  'bg-sold/10 text-sold',
+                ]}
+              >
+                <span data-lang-bg>
+                  {g.status === 'available' ? t.apartments.filter.available.bg :
+                   g.status === 'reserved' ? t.apartments.filter.reserved.bg :
+                   t.apartments.filter.sold.bg}
+                </span>
+                <span data-lang-en>
+                  {g.status === 'available' ? t.apartments.filter.available.en :
+                   g.status === 'reserved' ? t.apartments.filter.reserved.en :
+                   t.apartments.filter.sold.en}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Apartment Detail Modal -->
+  <div id="apartment-modal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-dark/80 backdrop-blur-sm" id="modal-backdrop"></div>
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" id="modal-content">
+        <!-- Modal header -->
+        <div class="sticky top-0 bg-charcoal p-6 flex items-center justify-between">
+          <h3 id="modal-title" class="text-xl font-heading font-semibold text-white"></h3>
+          <button id="modal-close" class="text-white/60 hover:text-white transition-colors p-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="p-6">
+          <!-- Floor plan placeholder -->
+          <div class="aspect-[16/10] bg-gradient-to-br from-cream-dark to-cream rounded-sm mb-6 flex items-center justify-center">
+            <div class="text-center text-stone">
+              <svg class="w-12 h-12 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+              </svg>
+              <p class="text-sm">
+                <span data-lang-bg>{t.apartments.modal.floorPlan.bg}</span>
+                <span data-lang-en>{t.apartments.modal.floorPlan.en}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Apartment description -->
+          <p id="modal-description" class="text-stone leading-relaxed mb-6"></p>
+
+          <!-- Specs grid -->
+          <div id="modal-specs" class="grid grid-cols-2 gap-4 mb-6"></div>
+
+          <!-- Contact CTA -->
+          <a
+            href="/contacts/"
+            class="block text-center py-3 bg-gold text-charcoal font-semibold text-sm uppercase tracking-wider hover:bg-gold-light transition-all rounded-sm"
+          >
+            <span data-lang-bg>{t.apartments.modal.contact.bg}</span>
+            <span data-lang-en>{t.apartments.modal.contact.en}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<script>
+  // Apartment data (serialized for client-side use)
+  const apartmentsData = JSON.parse(document.getElementById('apartments-data')?.textContent || '[]');
+
+  // ===== Filtering =====
+  let activeType = 'all';
+  let activeStatus = 'all';
+  let activeFloor: number | null = null;
+
+  const cards = document.querySelectorAll<HTMLElement>('.apartment-card');
+  const noResults = document.getElementById('no-results')!;
+
+  function applyFilters() {
+    let visibleCount = 0;
+    cards.forEach((card) => {
+      const type = card.dataset.type;
+      const status = card.dataset.status;
+      const floor = parseInt(card.dataset.floor || '0');
+
+      const matchType = activeType === 'all' || type === activeType;
+      const matchStatus = activeStatus === 'all' || status === activeStatus;
+      const matchFloor = activeFloor === null || floor === activeFloor;
+
+      if (matchType && matchStatus && matchFloor) {
+        card.style.display = '';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    noResults.classList.toggle('hidden', visibleCount > 0);
+  }
+
+  // Type filter buttons
+  document.querySelectorAll<HTMLButtonElement>('.filter-type-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeType = btn.dataset.filterType || 'all';
+      document.querySelectorAll('.filter-type-btn').forEach((b) => {
+        b.classList.remove('bg-charcoal', 'text-white', 'border-charcoal');
+        b.classList.add('bg-white', 'text-charcoal', 'border-cream-dark');
+      });
+      btn.classList.remove('bg-white', 'text-charcoal', 'border-cream-dark');
+      btn.classList.add('bg-charcoal', 'text-white', 'border-charcoal');
+      applyFilters();
+    });
+  });
+
+  // Status filter buttons
+  document.querySelectorAll<HTMLButtonElement>('.filter-status-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeStatus = btn.dataset.filterStatus || 'all';
+      document.querySelectorAll('.filter-status-btn').forEach((b) => {
+        b.classList.remove('bg-charcoal', 'text-white', 'border-charcoal');
+        b.classList.add('bg-white', 'text-charcoal', 'border-cream-dark');
+      });
+      btn.classList.remove('bg-white', 'text-charcoal', 'border-cream-dark');
+      btn.classList.add('bg-charcoal', 'text-white', 'border-charcoal');
+      applyFilters();
+    });
+  });
+
+  // Floor selector buttons
+  document.querySelectorAll<HTMLButtonElement>('.floor-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const floor = parseInt(btn.dataset.floor || '0');
+      if (activeFloor === floor) {
+        activeFloor = null;
+        document.querySelectorAll('.floor-btn').forEach((b) => {
+          b.classList.remove('border-gold', 'bg-gold/5');
+          b.classList.add('border-cream-dark');
+        });
+      } else {
+        activeFloor = floor;
+        document.querySelectorAll('.floor-btn').forEach((b) => {
+          b.classList.remove('border-gold', 'bg-gold/5');
+          b.classList.add('border-cream-dark');
+        });
+        btn.classList.remove('border-cream-dark');
+        btn.classList.add('border-gold', 'bg-gold/5');
+      }
+      applyFilters();
+    });
+  });
+
+  // ===== Modal =====
+  const modal = document.getElementById('apartment-modal')!;
+  const modalTitle = document.getElementById('modal-title')!;
+  const modalDesc = document.getElementById('modal-description')!;
+  const modalSpecs = document.getElementById('modal-specs')!;
+
+  // Apartment data embedded from the server
+  interface AptData {
+    id: number; number: string; floor: number; type: string;
+    typeLabel: { bg: string; en: string }; rooms: number; area: number;
+    price: number | null; status: string;
+    description: { bg: string; en: string };
+  }
+
+  const apartmentsList: AptData[] = [
+    {id:1,number:"A1",floor:1,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:85.4,price:185000,status:"available",description:{bg:"Просторен двустаен апартамент на първи етаж с частна градина и директен достъп до двора.",en:"Spacious 2-bedroom apartment on the first floor with a private garden and direct yard access."}},
+    {id:2,number:"A2",floor:1,type:"1BR",typeLabel:{bg:"Едностаен",en:"1 Bedroom"},rooms:1,area:62.3,price:135000,status:"sold",description:{bg:"Уютен едностаен апартамент с функционално разпределение и южно изложение.",en:"Cozy 1-bedroom apartment with a functional layout and southern exposure."}},
+    {id:3,number:"A3",floor:2,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:89.7,price:198000,status:"available",description:{bg:"Двустаен апартамент с панорамна гледка към Витоша и просторна дневна зона.",en:"2-bedroom apartment with a panoramic view of Vitosha and a spacious living area."}},
+    {id:4,number:"A4",floor:2,type:"3BR",typeLabel:{bg:"Тристаен",en:"3 Bedroom"},rooms:3,area:120.5,price:null,status:"available",description:{bg:"Луксозен тристаен апартамент с две бани, голяма тераса и гледка към планината.",en:"Luxurious 3-bedroom apartment with two bathrooms, a large terrace, and mountain views."}},
+    {id:5,number:"A5",floor:3,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:87.1,price:195000,status:"reserved",description:{bg:"Двустаен апартамент на трети етаж с отлична осветеност и балкон с гледка.",en:"2-bedroom apartment on the third floor with excellent natural light and a balcony with views."}},
+    {id:6,number:"A6",floor:3,type:"1BR",typeLabel:{bg:"Едностаен",en:"1 Bedroom"},rooms:1,area:64.8,price:142000,status:"available",description:{bg:"Компактен и модерен едностаен апартамент, идеален за млади професионалисти.",en:"Compact and modern 1-bedroom apartment, ideal for young professionals."}},
+    {id:7,number:"A7",floor:4,type:"3BR",typeLabel:{bg:"Тристаен",en:"3 Bedroom"},rooms:3,area:135.2,price:null,status:"available",description:{bg:"Пентхаус тристаен апартамент с голяма тераса, панорамна гледка и две бани. Най-ексклузивният в сградата.",en:"Penthouse 3-bedroom apartment with a large terrace, panoramic views, and two bathrooms. The most exclusive in the building."}},
+    {id:8,number:"A8",floor:4,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:91.3,price:210000,status:"available",description:{bg:"Двустаен апартамент на последен етаж с висок таван и уникален характер.",en:"2-bedroom apartment on the top floor with high ceilings and unique character."}},
+  ];
+
+  function openModal(id: number) {
+    const apt = apartmentsList.find(a => a.id === id);
+    if (!apt) return;
+
+    const lang = document.documentElement.getAttribute('data-lang') || 'bg';
+
+    modalTitle.textContent = `${lang === 'bg' ? 'Апартамент' : 'Apartment'} ${apt.number}`;
+    modalDesc.textContent = lang === 'bg' ? apt.description.bg : apt.description.en;
+
+    const statusLabels: Record<string, { bg: string; en: string }> = {
+      available: { bg: 'Свободен', en: 'Available' },
+      reserved: { bg: 'Резервиран', en: 'Reserved' },
+      sold: { bg: 'Продаден', en: 'Sold' },
+    };
+
+    modalSpecs.innerHTML = `
+      <div class="p-3 bg-cream rounded-sm">
+        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Тип' : 'Type'}</p>
+        <p class="font-semibold text-charcoal">${lang === 'bg' ? apt.typeLabel.bg : apt.typeLabel.en}</p>
+      </div>
+      <div class="p-3 bg-cream rounded-sm">
+        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Етаж' : 'Floor'}</p>
+        <p class="font-semibold text-charcoal">${apt.floor}</p>
+      </div>
+      <div class="p-3 bg-cream rounded-sm">
+        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Площ' : 'Area'}</p>
+        <p class="font-semibold text-charcoal">${apt.area} m²</p>
+      </div>
+      <div class="p-3 bg-cream rounded-sm">
+        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Стаи' : 'Rooms'}</p>
+        <p class="font-semibold text-charcoal">${apt.rooms}</p>
+      </div>
+      <div class="p-3 bg-cream rounded-sm">
+        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Цена' : 'Price'}</p>
+        <p class="font-semibold text-charcoal">${apt.price ? '€' + apt.price.toLocaleString() : (lang === 'bg' ? 'При запитване' : 'On request')}</p>
+      </div>
+      <div class="p-3 bg-cream rounded-sm">
+        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Статус' : 'Status'}</p>
+        <p class="font-semibold text-charcoal">${lang === 'bg' ? statusLabels[apt.status].bg : statusLabels[apt.status].en}</p>
+      </div>
+    `;
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.apartment-detail-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.apartmentId || '0');
+      openModal(id);
+    });
+  });
+
+  document.getElementById('modal-close')?.addEventListener('click', closeModal);
+  document.getElementById('modal-backdrop')?.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
