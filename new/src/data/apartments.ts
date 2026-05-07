@@ -22,6 +22,10 @@ export interface Garage {
   status: ApartmentStatus;
 }
 
+// Floor 1: 3 apartments (upper-right A1, lower-right A2, bottom-left A3)
+// Floor 2: 2 apartments (left A4, right A5)
+// Floor 3: 2 apartments (left A6, right A7)
+// Floor 4: 1 penthouse (A8)
 export const apartments: Apartment[] = [
   {
     id: 1,
@@ -31,7 +35,7 @@ export const apartments: Apartment[] = [
     typeLabel: { bg: 'Двустаен', en: '2 Bedroom' },
     rooms: 2,
     area: 85.4,
-    price: 185000,
+    price: 199000,
     status: 'available',
     description: {
       bg: 'Просторен двустаен апартамент на първи етаж с частна градина и директен достъп до двора.',
@@ -56,6 +60,21 @@ export const apartments: Apartment[] = [
   {
     id: 3,
     number: 'A3',
+    floor: 1,
+    type: '3BR',
+    typeLabel: { bg: 'Тристаен', en: '3 Bedroom' },
+    rooms: 3,
+    area: 115.6,
+    price: 245000,
+    status: 'available',
+    description: {
+      bg: 'Просторен тристаен апартамент на първи етаж с голяма частна градина и директен изход към двора.',
+      en: 'Spacious 3-bedroom apartment on the first floor with a large private garden and direct yard access.',
+    },
+  },
+  {
+    id: 4,
+    number: 'A4',
     floor: 2,
     type: '2BR',
     typeLabel: { bg: 'Двустаен', en: '2 Bedroom' },
@@ -69,8 +88,8 @@ export const apartments: Apartment[] = [
     },
   },
   {
-    id: 4,
-    number: 'A4',
+    id: 5,
+    number: 'A5',
     floor: 2,
     type: '3BR',
     typeLabel: { bg: 'Тристаен', en: '3 Bedroom' },
@@ -84,8 +103,8 @@ export const apartments: Apartment[] = [
     },
   },
   {
-    id: 5,
-    number: 'A5',
+    id: 6,
+    number: 'A6',
     floor: 3,
     type: '2BR',
     typeLabel: { bg: 'Двустаен', en: '2 Bedroom' },
@@ -99,8 +118,8 @@ export const apartments: Apartment[] = [
     },
   },
   {
-    id: 6,
-    number: 'A6',
+    id: 7,
+    number: 'A7',
     floor: 3,
     type: '1BR',
     typeLabel: { bg: 'Едностаен', en: '1 Bedroom' },
@@ -114,46 +133,46 @@ export const apartments: Apartment[] = [
     },
   },
   {
-    id: 7,
-    number: 'A7',
+    id: 8,
+    number: 'A8',
     floor: 4,
     type: '3BR',
     typeLabel: { bg: 'Тристаен', en: '3 Bedroom' },
     rooms: 3,
-    area: 135.2,
+    area: 142.8,
     price: null,
     status: 'available',
     description: {
-      bg: 'Пентхаус тристаен апартамент с голяма тераса, панорамна гледка и две бани. Най-ексклузивният в сградата.',
-      en: 'Penthouse 3-bedroom apartment with a large terrace, panoramic views, and two bathrooms. The most exclusive in the building.',
-    },
-  },
-  {
-    id: 8,
-    number: 'A8',
-    floor: 4,
-    type: '2BR',
-    typeLabel: { bg: 'Двустаен', en: '2 Bedroom' },
-    rooms: 2,
-    area: 91.3,
-    price: 210000,
-    status: 'available',
-    description: {
-      bg: 'Двустаен апартамент на последен етаж с висок таван и уникален характер.',
-      en: '2-bedroom apartment on the top floor with high ceilings and unique character.',
+      bg: 'Пентхаус апартамент с огромна тераса, панорамна гледка към Витоша и две бани. Най-ексклузивното жилище в сградата.',
+      en: 'Penthouse apartment with a vast terrace, panoramic views of Vitosha, and two bathrooms. The most exclusive residence in the building.',
     },
   },
 ];
 
+// 2 enclosed garage units
 export const garages: Garage[] = [
-  { id: 1, number: 'G1', area: 18.5, price: 28000, status: 'sold' },
-  { id: 2, number: 'G2', area: 17.8, price: 26000, status: 'available' },
-  { id: 3, number: 'G3', area: 19.2, price: 29000, status: 'reserved' },
-  { id: 4, number: 'G4', area: 18.0, price: 27000, status: 'available' },
-  { id: 5, number: 'G5', area: 18.3, price: 27500, status: 'available' },
-  { id: 6, number: 'G6', area: 17.5, price: 25000, status: 'available' },
-  { id: 7, number: 'G7', area: 19.0, price: 28500, status: 'sold' },
-  { id: 8, number: 'G8', area: 18.8, price: 28000, status: 'available' },
+  { id: 1, number: 'G9', area: 34.5, price: 44000, status: 'available' },
+  { id: 2, number: 'G10', area: 33.0, price: 42000, status: 'available' },
+];
+
+// 8 open parking spots
+export const parkingSpots: Garage[] = [
+  { id: 1, number: 'P1', area: 14.5, price: 17000, status: 'available' },
+  { id: 2, number: 'P2', area: 14.5, price: 17000, status: 'available' },
+  { id: 3, number: 'P3', area: 14.5, price: 17000, status: 'available' },
+  { id: 4, number: 'P4', area: 14.5, price: 17000, status: 'reserved' },
+  { id: 5, number: 'P5', area: 14.5, price: 17000, status: 'available' },
+  { id: 6, number: 'P6', area: 14.5, price: 17000, status: 'available' },
+  { id: 7, number: 'P7', area: 14.5, price: 17000, status: 'sold' },
+  { id: 8, number: 'P8', area: 14.5, price: 17000, status: 'available' },
+];
+
+// 4 compact parking places
+export const parkingPlaces: Garage[] = [
+  { id: 1, number: 'PL1', area: 8.0, price: 10000, status: 'available' },
+  { id: 2, number: 'PL2', area: 8.0, price: 10000, status: 'available' },
+  { id: 3, number: 'PL3', area: 8.0, price: 10000, status: 'available' },
+  { id: 4, number: 'PL4', area: 8.0, price: 10000, status: 'available' },
 ];
 
 export const apartmentTypes: { value: ApartmentType | 'all'; label: { bg: string; en: string } }[] = [

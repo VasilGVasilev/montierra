@@ -3,20 +3,128 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { t } from '../i18n/translations';
-import { apartments, garages, apartmentTypes, statusOptions } from '../data/apartments';
+import { apartments, garages, parkingSpots, parkingPlaces, apartmentTypes, statusOptions } from '../data/apartments';
+
+const floorPlanImages: Record<number, string> = {
+  0: '/images/floor-plans/parking.jpg',
+  1: '/images/floor-plans/1.jpg',
+  2: '/images/floor-plans/2.jpg',
+  3: '/images/floor-plans/3.jpg',
+  4: '/images/floor-plans/4.jpg',
+};
+
+// SVG polygon points for each apartment traced against the 4961×3508 floor plan images.
+// The SVG uses viewBox="0 0 4961 3508" with preserveAspectRatio="xMidYMid meet" to
+// mirror object-contain image rendering — coordinates are in image pixels.
+//
+// Floor 1 (1.jpg): coloured site-plan render
+//   A1 = upper-right unit  A2 = lower-right unit  A3 = bottom-left unit
+// Floor 2 (2.jpg): coloured render, left/right split
+// Floor 3 (3.jpg): architectural drawing, left/right split
+// Floor 4 (4.jpg): architectural drawing, full-floor penthouse
+const aptPolygons: Record<string, string> = {
+  // Floor 1
+  A1: '2402,1153,2402,1495,2717,1497,2717,1695,3151,1695,3151,1796,3870,1802,3870,1497,3870,1469,3857,1285,3804,1114,3445,1276,3383,1197,3256,1201,3195,1158,3160,1149',
+  A2: '2397,1519,2402,2997,3870,2990,3870,1824,3129,1822,3129,1715,2695,1715,2691,1519',
+  A3: '1608,1732,1604,2324,1626,2359,1665,2377,1705,2385,1709,2776,1920,2986,2371,2986,2371,1995,1985,1995,1985,1732',
+  // Floor 2
+  A4: '2397,1142,3160,1142,3195,1155,3217,1191,3221,1699,3125,1699,3129,2339,3116,2361,3085,2379,2717,2383,2717,2225,2397,2225',
+  A5: '1832,1528,1836,1725,1608,1725,1604,2322,1617,2357,1670,2383,2047,2383,2047,2225,2371,2225,2371,1528',
+  // Floor 3
+  A6: '2397,1144,2393,2456,2704,2456,2704,2381,3085,2381,3116,2368,3125,2337,3125,1697,3221,1697,3217,1197,3204,1158,3160,1140',
+  A7: '1832,1522,2367,1517,2371,2456,2077,2456,2077,2377,1661,2377,1617,2355,1608,2320,1608,1732,1832,1734',
+  // Floor 4 — single penthouse
+  A8: '1753,1721,1757,2107,1788,2188,1871,2223,2077,2228,2077,2390,3085,2388,3116,2364,3129,2337,3129,1699,3226,1697,3217,1153,3164,1127,2393,1127,2397,1324,2174,1324,2178,1495,2178,1526,1836,1530,1836,1719',
+};
+
+// Centre of each polygon (image px) — used for the apartment-number SVG label.
+const aptLabelPos: Record<string, { x: number; y: number }> = {
+  A1: { x: 3465, y: 1200 },
+  A2: { x: 3465, y: 2525 },
+  A3: { x: 1790, y: 2005 },
+  A4: { x: 2720, y: 1985 },
+  A5: { x: 1975, y: 1985 },
+  A6: { x: 2975, y: 1708 },
+  A7: { x: 1925, y: 1708 },
+  A8: { x: 2490, y: 1708 },
+};
+
+// Parking floor (0) — placeholder polygon points against 4961×3508 image.
+// Coords will need to be retraced once real parking.jpg boundaries are confirmed.
+const parkPolygons: Record<string, string> = {
+    // Parking spots (P1–P8) — standard open bays
+  P1:  '3870,2381,3870,2991,3375,2991,3375,2381',
+  P2:  '3369,2381,3369,2991,3077,2991,3077,2381',
+  P3:  '2704,2381,3077,2381,3077,2991,2708,2991',
+  P4:  '2704,2381,2704,2991,2384,2991,2384,2381',
+  P5:  '2060,2381,2060,2991,2384,2991,2384,2381',
+  P6:  '2060,2381,2060,2991,1920,2991,1709,2784,1709,2381',
+  P7:  '1753,2052,1753,2377,1214,2372,1214,2052',
+  P8:  '1753,1728,1753,2052,1214,2052,1214,1728',
+  // Garages (G9–G10) — large enclosed units
+  G9:  '2704,1081,2704,1717,2402,1717,2397,1085',
+  G10:  '2722,1717,3357,1725,3357,1401,3313,1291,3239,1204,3155,1142,3072,1098,2989,1085,2726,1081',
+  // Places (PL1–PL4) — compact spots
+  // PL1: '300,1720,300,2060,620,2060,620,1720',
+  // PL2: '620,1720,620,2060,940,2060,940,1720',
+  // PL3: '940,1720,940,2060,1260,2060,1260,1720',
+  // PL4: '1260,1720,1260,2060,1580,2060,1580,1720',
+};
+
+const parkLabelPos: Record<string, { x: number; y: number }> = {
+  G9:  { x: 2550,  y: 1350  },
+  G10:  { x: 2950,  y: 1350  },
+  P1:  { x: 3600,  y: 2700 },
+  P2:  { x: 3220,  y: 2700 },
+  P3:  { x: 2900,  y: 2700 },
+  P4:  { x: 2550, y: 2700 },
+  P5:  { x: 2220, y: 2700 },
+  P6:  { x: 1900, y: 2700 },
+  P7:  { x: 1500, y: 2200 },
+  P8:  { x: 1500, y: 1900 },
+  PL1: { x: 460,  y: 1890 },
+  PL2: { x: 780,  y: 1890 },
+  PL3: { x: 1100, y: 1890 },
+  PL4: { x: 1420, y: 1890 },
+};
+
+type ParkingKind = 'garage' | 'parking' | 'place';
+const parkingData = [
+  ...garages.map(g       => ({ ...g, kind: 'garage'  as ParkingKind })),
+  ...parkingSpots.map(p  => ({ ...p, kind: 'parking' as ParkingKind })),
+  ...parkingPlaces.map(p => ({ ...p, kind: 'place'   as ParkingKind })),
+];
+
+const floors = [4, 3, 2, 1, 0] as const;
 ---
 
 <Layout title="Montierra — Апартаменти | Apartments">
   <Header currentPage="apartments" />
 
+  <!-- Floating tooltip (positioned by JS on polygon hover) -->
+  <div
+    id="fp-tooltip"
+    class="fixed z-[200] hidden bg-charcoal/95 text-white text-xs rounded-sm px-3 py-2.5 shadow-xl min-w-[150px] pointer-events-none backdrop-blur-sm"
+  >
+    <span id="fp-tt-name" class="block font-semibold mb-1 text-white"></span>
+    <span id="fp-tt-area" class="block text-white/60 text-[11px] mb-1"></span>
+    <span id="fp-tt-status" class="block text-[11px] font-semibold mb-1.5"></span>
+    <span class="block text-[10px] text-gold uppercase tracking-wider">
+      <span data-lang-bg>Кликни за детайли</span>
+      <span data-lang-en>Click for details</span>
+    </span>
+  </div>
+
   <main class="flex-1">
     <!-- Hero -->
-    <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-charcoal overflow-hidden">
-      <div class="absolute inset-0 opacity-10">
-        <svg class="absolute bottom-0 w-full h-1/2" viewBox="0 0 1440 320" preserveAspectRatio="none">
-          <path fill="#c9a96e" d="M0,224L60,213.3C120,203,240,181,360,181.3C480,181,600,203,720,202.7C840,203,960,181,1080,181.3C1200,181,1320,203,1380,213.3L1440,224L1440,320L0,320Z" />
-        </svg>
-      </div>
+    <section class="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+      <img
+        src="/images/visualizations/3.jpg"
+        alt="Montierra Residence facade"
+        class="absolute inset-0 w-full h-full object-cover"
+        fetchpriority="high"
+      />
+      <div class="absolute inset-0 bg-gradient-to-b from-dark/70 via-dark/50 to-dark/80"></div>
       <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
         <p class="text-gold text-sm uppercase tracking-[0.3em] mb-4 reveal">Montierra</p>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-white mb-6 reveal reveal-delay-1">
@@ -30,99 +138,241 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
       </div>
     </section>
 
-    <!-- Floor Selector -->
-    <section class="py-12 md:py-16 bg-white border-b border-cream-dark">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-heading font-semibold text-charcoal text-center mb-8 reveal">
-          <span data-lang-bg>{t.apartments.floorSelector.title.bg}</span>
-          <span data-lang-en>{t.apartments.floorSelector.title.en}</span>
-        </h2>
-        <div class="flex flex-col items-center gap-2 reveal reveal-delay-1" id="floor-selector">
-          <!-- Visual building representation -->
-          <div class="w-full max-w-md">
-            {[4, 3, 2, 1].map((floor) => {
-              const floorApts = apartments.filter(a => a.floor === floor);
-              return (
-                <button
-                  data-floor={floor}
-                  class="floor-btn w-full flex items-center gap-3 p-3 border border-cream-dark hover:border-gold/50 transition-all group mb-1 rounded-sm"
-                >
-                  <span class="text-sm font-heading font-semibold text-charcoal w-16 shrink-0">
-                    <span data-lang-bg>Етаж {floor}</span>
-                    <span data-lang-en>Floor {floor}</span>
-                  </span>
-                  <div class="flex-1 flex gap-2">
-                    {floorApts.map((apt) => (
-                      <div
-                        class:list={[
-                          'flex-1 h-10 rounded-sm flex items-center justify-center text-xs font-medium transition-colors',
-                          apt.status === 'available' ? 'bg-success/10 text-success border border-success/20' :
-                          apt.status === 'reserved' ? 'bg-reserved/10 text-reserved border border-reserved/20' :
-                          'bg-sold/10 text-sold border border-sold/20',
-                        ]}
-                      >
-                        {apt.number}
-                      </div>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-            <!-- Underground garages -->
+    <!-- Interactive Floor Plan Section -->
+    <section class="py-16 md:py-24 bg-white" id="floor-plans-section">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-10 reveal">
+          <p class="text-gold text-sm uppercase tracking-[0.2em] mb-3">Montierra</p>
+          <h2 class="text-2xl md:text-3xl font-heading font-semibold text-charcoal">
+            <span data-lang-bg>Разпределение на етажите</span>
+            <span data-lang-en>Interactive Floor Plans</span>
+          </h2>
+          <p class="text-stone mt-3 text-sm max-w-md mx-auto">
+            <span data-lang-bg>Изберете етаж и кликнете върху апартамент за детайли и наличност</span>
+            <span data-lang-en>Select a floor and click an apartment to see details and availability</span>
+          </p>
+        </div>
+
+        <!-- Floor tabs -->
+        <div class="flex flex-wrap gap-2 justify-center mb-4 reveal reveal-delay-1" id="fp-floor-tabs">
+          {floors.map((floor) => (
             <button
-              data-floor="0"
-              class="floor-btn w-full flex items-center gap-3 p-3 border border-cream-dark hover:border-gold/50 transition-all group mt-2 rounded-sm bg-charcoal/5"
+              data-fp-floor={floor}
+              class:list={[
+                'fp-floor-tab px-5 py-2.5 text-sm font-medium border transition-all rounded-sm',
+                floor === 1
+                  ? 'bg-charcoal text-white border-charcoal'
+                  : 'bg-white text-charcoal border-cream-dark hover:border-gold/50',
+              ]}
             >
-              <span class="text-sm font-heading font-semibold text-charcoal w-16 shrink-0">
-                <span data-lang-bg>-1</span>
-                <span data-lang-en>-1</span>
-              </span>
-              <div class="flex-1 flex gap-1">
-                {garages.map((g) => (
-                  <div
-                    class:list={[
-                      'flex-1 h-8 rounded-sm flex items-center justify-center text-[10px] font-medium transition-colors',
-                      g.status === 'available' ? 'bg-success/10 text-success border border-success/20' :
-                      g.status === 'reserved' ? 'bg-reserved/10 text-reserved border border-reserved/20' :
-                      'bg-sold/10 text-sold border border-sold/20',
-                    ]}
-                  >
-                    {g.number}
-                  </div>
-                ))}
-              </div>
+              <span data-lang-bg>{floor === 0 ? 'Паркинг' : `Етаж ${floor}`}</span>
+              <span data-lang-en>{floor === 0 ? 'Parking' : `Floor ${floor}`}</span>
             </button>
+          ))}
+        </div>
+
+        <!-- Floor plan viewer -->
+        <div class="rounded-sm overflow-hidden border border-cream-dark shadow-sm reveal reveal-delay-2" id="fp-viewer">
+          {floors.map((floor) => {
+            const floorApts = apartments.filter((a) => a.floor === floor);
+            const imgSrc = floorPlanImages[floor];
+            return (
+              <div
+                class="fp-floor-display"
+                data-display-floor={floor}
+                style={floor !== 1 ? 'display:none' : ''}
+              >
+                <!-- Floor plan image + SVG polygon overlay -->
+                <div class="relative bg-white" style="aspect-ratio: 4/3;">
+                  <img
+                    src={imgSrc}
+                    alt={floor === 0 ? 'Parking floor plan' : `Floor ${floor} plan`}
+                    class="absolute inset-0 w-full h-full object-contain"
+                    loading="lazy"
+                  />
+
+                  {/* SVG apartment overlays — residential floors only.
+                      viewBox matches native image size (4961×3508).
+                      preserveAspectRatio="xMidYMid meet" mirrors object-contain so
+                      polygon coordinates land exactly on their apartment walls. */}
+                  {floor > 0 && (
+                    <svg
+                      class="absolute inset-0 w-full h-full"
+                      viewBox="0 0 4961 3508"
+                      preserveAspectRatio="xMidYMid meet"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      {floorApts.map((apt) => {
+                        const pts = aptPolygons[apt.number];
+                        const lbl = aptLabelPos[apt.number];
+                        if (!pts) return null;
+                        const color =
+                          apt.status === 'available' ? '#4a7c59' :
+                          apt.status === 'reserved'  ? '#c9a96e' : '#8b3a3a';
+                        return (
+                          <>
+                            <polygon
+                              points={pts}
+                              fill={color}
+                              fill-opacity="0.22"
+                              stroke={color}
+                              stroke-width="18"
+                              stroke-linejoin="round"
+                              class="fp-apt-polygon"
+                              style="cursor:pointer;"
+                              data-apt-id={apt.id}
+                            />
+                            {lbl && (
+                              <text
+                                x={lbl.x}
+                                y={lbl.y}
+                                text-anchor="middle"
+                                dominant-baseline="middle"
+                                fill={color}
+                                font-size="115"
+                                font-weight="700"
+                                style="pointer-events:none;user-select:none;font-family:'DM Sans',sans-serif;"
+                              >
+                                {apt.number}
+                              </text>
+                            )}
+                          </>
+                        );
+                      })}
+                    </svg>
+                  )}
+
+                  {/* Parking level: interactive SVG overlay */}
+                  {floor === 0 && (
+                    <svg
+                      class="absolute inset-0 w-full h-full"
+                      viewBox="0 0 4961 3508"
+                      preserveAspectRatio="xMidYMid meet"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      {parkingData.map((item) => {
+                        const pts = parkPolygons[item.number];
+                        const lbl = parkLabelPos[item.number];
+                        if (!pts) return null;
+                        const color =
+                          item.status === 'available' ? '#4a7c59' :
+                          item.status === 'reserved'  ? '#c9a96e' : '#8b3a3a';
+                        return (
+                          <>
+                            <polygon
+                              points={pts}
+                              fill={color}
+                              fill-opacity="0.22"
+                              stroke={color}
+                              stroke-width="14"
+                              stroke-linejoin="round"
+                              class="fp-park-polygon"
+                              style="cursor:pointer;"
+                              data-park-id={item.number}
+                            />
+                            {lbl && (
+                              <text
+                                x={lbl.x}
+                                y={lbl.y}
+                                text-anchor="middle"
+                                dominant-baseline="middle"
+                                fill={color}
+                                font-size="90"
+                                font-weight="700"
+                                style="pointer-events:none;user-select:none;font-family:'DM Sans',sans-serif;"
+                              >
+                                {item.number}
+                              </text>
+                            )}
+                          </>
+                        );
+                      })}
+                    </svg>
+                  )}
+                </div>
+
+                <!-- Floor info bar -->
+                <div class="px-5 py-3.5 bg-cream/60 border-t border-cream-dark flex items-center justify-between flex-wrap gap-3">
+                  <span class="text-sm font-heading font-semibold text-charcoal">
+                    <span data-lang-bg>{floor === 0 ? 'Подземен паркинг' : `Етаж ${floor}`}</span>
+                    <span data-lang-en>{floor === 0 ? 'Underground Parking' : `Floor ${floor}`}</span>
+                  </span>
+                  {floor > 0 && (
+                    <div class="flex flex-wrap gap-4">
+                      {floorApts.map((apt) => (
+                        <div class:list={[
+                          'flex items-center gap-1.5 text-xs',
+                          apt.status === 'available' ? 'text-success' :
+                          apt.status === 'reserved' ? 'text-reserved' : 'text-sold',
+                        ]}>
+                          <div class:list={[
+                            'w-2 h-2 rounded-full shrink-0',
+                            apt.status === 'available' ? 'bg-success' :
+                            apt.status === 'reserved' ? 'bg-reserved' : 'bg-sold',
+                          ]}></div>
+                          <span class="font-semibold">{apt.number}</span>
+                          <span class="text-stone/60">·</span>
+                          <span class="text-stone">{apt.area} m²</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {floor === 0 && (
+                    <div class="flex flex-wrap gap-3">
+                      {parkingData.map((item) => (
+                        <div class:list={[
+                          'flex items-center gap-1.5 text-xs',
+                          item.status === 'available' ? 'text-success' :
+                          item.status === 'reserved' ? 'text-reserved' : 'text-sold',
+                        ]}>
+                          <div class:list={[
+                            'w-2 h-2 rounded-full shrink-0',
+                            item.status === 'available' ? 'bg-success' :
+                            item.status === 'reserved' ? 'bg-reserved' : 'bg-sold',
+                          ]}></div>
+                          <span class="font-semibold">{item.number}</span>
+                          <span class="text-stone/60">·</span>
+                          <span class="text-stone">{item.area} m²</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap gap-6 mt-5 justify-center text-sm text-stone reveal reveal-delay-3">
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 rounded-full bg-success"></div>
+            <span data-lang-bg>Свободен</span>
+            <span data-lang-en>Available</span>
           </div>
-          <!-- Legend -->
-          <div class="flex flex-wrap gap-4 mt-4 text-xs text-stone">
-            <div class="flex items-center gap-1.5">
-              <div class="w-3 h-3 rounded-sm bg-success/20 border border-success/30"></div>
-              <span data-lang-bg>{t.apartments.filter.available.bg}</span>
-              <span data-lang-en>{t.apartments.filter.available.en}</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-3 h-3 rounded-sm bg-reserved/20 border border-reserved/30"></div>
-              <span data-lang-bg>{t.apartments.filter.reserved.bg}</span>
-              <span data-lang-en>{t.apartments.filter.reserved.en}</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-3 h-3 rounded-sm bg-sold/20 border border-sold/30"></div>
-              <span data-lang-bg>{t.apartments.filter.sold.bg}</span>
-              <span data-lang-en>{t.apartments.filter.sold.en}</span>
-            </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 rounded-full bg-reserved"></div>
+            <span data-lang-bg>Резервиран</span>
+            <span data-lang-en>Reserved</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 rounded-full bg-sold"></div>
+            <span data-lang-bg>Продаден</span>
+            <span data-lang-en>Sold</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Filters & Apartment Cards -->
-    <section class="py-12 md:py-16 bg-cream">
+    <section class="py-12 md:py-16 bg-cream" id="apartments-section">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Filter Bar -->
         <div class="flex flex-wrap gap-4 mb-10 reveal" id="filter-bar">
           <!-- Type filter -->
-          <div class="flex flex-wrap gap-2">
-            <span class="text-sm text-stone self-center mr-2">
+          <div class="flex flex-wrap gap-2 items-center">
+            <span class="text-sm text-stone mr-1">
               <span data-lang-bg>{t.apartments.filter.type.bg}:</span>
               <span data-lang-en>{t.apartments.filter.type.en}:</span>
             </span>
@@ -143,8 +393,8 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
           </div>
 
           <!-- Status filter -->
-          <div class="flex flex-wrap gap-2">
-            <span class="text-sm text-stone self-center mr-2">
+          <div class="flex flex-wrap gap-2 items-center">
+            <span class="text-sm text-stone mr-1">
               <span data-lang-bg>{t.apartments.filter.status.bg}:</span>
               <span data-lang-en>{t.apartments.filter.status.en}:</span>
             </span>
@@ -169,21 +419,30 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="apartments-grid">
           {apartments.map((apt, i) => (
             <div
-              class={`apartment-card bg-white rounded-sm overflow-hidden border border-cream-dark hover:border-gold/30 hover:shadow-lg transition-all reveal reveal-delay-${(i % 4) + 1}`}
+              class={`apartment-card bg-white rounded-sm overflow-hidden border border-cream-dark hover:border-gold/40 hover:shadow-xl transition-all reveal reveal-delay-${(i % 4) + 1}`}
               data-type={apt.type}
               data-status={apt.status}
               data-floor={apt.floor}
             >
-              <!-- Top section with apartment visual -->
-              <div class="relative h-40 bg-gradient-to-br from-charcoal-light to-charcoal flex items-center justify-center">
-                <span class="text-3xl font-heading font-bold text-gold/40">{apt.number}</span>
+              <!-- Card thumbnail -->
+              <div class="relative h-44 overflow-hidden">
+                <img
+                  src={floorPlanImages[apt.floor]}
+                  alt={`Floor ${apt.floor} plan`}
+                  class="absolute inset-0 w-full h-full object-cover scale-110"
+                  loading="lazy"
+                />
+                <div class="absolute inset-0 bg-charcoal/55"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="text-3xl font-heading font-bold text-white/70 select-none">{apt.number}</span>
+                </div>
                 <!-- Status badge -->
                 <div
                   class:list={[
                     'absolute top-3 right-3 px-2.5 py-1 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
-                    apt.status === 'available' ? 'bg-success/90 text-white' :
-                    apt.status === 'reserved' ? 'bg-reserved/90 text-white' :
-                    'bg-sold/90 text-white',
+                    apt.status === 'available' ? 'bg-success text-white' :
+                    apt.status === 'reserved' ? 'bg-reserved text-white' :
+                    'bg-sold text-white',
                   ]}
                 >
                   <span data-lang-bg>
@@ -196,6 +455,11 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
                      apt.status === 'reserved' ? t.apartments.filter.reserved.en :
                      t.apartments.filter.sold.en}
                   </span>
+                </div>
+                <!-- Floor label -->
+                <div class="absolute bottom-3 left-3 text-white/60 text-xs">
+                  <span data-lang-bg>Етаж {apt.floor}</span>
+                  <span data-lang-en>Floor {apt.floor}</span>
                 </div>
               </div>
 
@@ -215,13 +479,6 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
                 <div class="grid grid-cols-2 gap-3 text-sm mb-4">
                   <div>
                     <p class="text-stone text-xs uppercase tracking-wider">
-                      <span data-lang-bg>{t.apartments.card.floor.bg}</span>
-                      <span data-lang-en>{t.apartments.card.floor.en}</span>
-                    </p>
-                    <p class="font-semibold text-charcoal">{apt.floor}</p>
-                  </div>
-                  <div>
-                    <p class="text-stone text-xs uppercase tracking-wider">
                       <span data-lang-bg>{t.apartments.card.area.bg}</span>
                       <span data-lang-en>{t.apartments.card.area.en}</span>
                     </p>
@@ -234,15 +491,13 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
                     </p>
                     <p class="font-semibold text-charcoal">{apt.rooms}</p>
                   </div>
-                  <div>
+                  <div class="col-span-2">
                     <p class="text-stone text-xs uppercase tracking-wider">
                       <span data-lang-bg>{t.apartments.card.price.bg}</span>
                       <span data-lang-en>{t.apartments.card.price.en}</span>
                     </p>
                     <p class="font-semibold text-charcoal">
-                      {apt.price
-                        ? `€${apt.price.toLocaleString()}`
-                        : (() => null)()}
+                      {apt.price ? `€${apt.price.toLocaleString()}` : null}
                       {!apt.price && (
                         <>
                           <span data-lang-bg class="text-xs">{t.apartments.card.priceOnRequest.bg}</span>
@@ -275,7 +530,7 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
       </div>
     </section>
 
-    <!-- Garages Section -->
+    <!-- Parking Section -->
     <section class="py-12 md:py-16 bg-white">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl md:text-3xl font-heading font-semibold text-charcoal text-center mb-4 reveal">
@@ -286,22 +541,25 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
           <span data-lang-bg>{t.apartments.garages.subtitle.bg}</span>
           <span data-lang-en>{t.apartments.garages.subtitle.en}</span>
         </p>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+        <!-- Garages (G9–G10) -->
+        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-gold mb-3 reveal">
+          <span data-lang-bg>Гаражи</span>
+          <span data-lang-en>Garages</span>
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {garages.map((g, i) => (
-            <div class={`p-4 border border-cream-dark rounded-sm text-center reveal reveal-delay-${(i % 4) + 1}`}>
+            <div class={`p-4 border border-cream-dark rounded-sm text-center hover:border-gold/30 transition-colors reveal reveal-delay-${(i % 4) + 1}`}>
               <p class="text-lg font-heading font-semibold text-charcoal mb-1">{g.number}</p>
               <p class="text-sm text-stone">{g.area} m²</p>
               <p class="text-sm font-semibold text-charcoal mt-1">
                 {g.price ? `€${g.price.toLocaleString()}` : '—'}
               </p>
-              <span
-                class:list={[
-                  'inline-block mt-2 px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
-                  g.status === 'available' ? 'bg-success/10 text-success' :
-                  g.status === 'reserved' ? 'bg-reserved/10 text-reserved' :
-                  'bg-sold/10 text-sold',
-                ]}
-              >
+              <span class:list={[
+                'inline-block mt-2 px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
+                g.status === 'available' ? 'bg-success/10 text-success' :
+                g.status === 'reserved' ? 'bg-reserved/10 text-reserved' : 'bg-sold/10 text-sold',
+              ]}>
                 <span data-lang-bg>
                   {g.status === 'available' ? t.apartments.filter.available.bg :
                    g.status === 'reserved' ? t.apartments.filter.reserved.bg :
@@ -316,6 +574,72 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
             </div>
           ))}
         </div>
+
+        <!-- Parking spots (P1–P8) -->
+        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-gold mb-3 reveal">
+          <span data-lang-bg>Паркоместа</span>
+          <span data-lang-en>Parking Spots</span>
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {parkingSpots.map((p, i) => (
+            <div class={`p-4 border border-cream-dark rounded-sm text-center hover:border-gold/30 transition-colors reveal reveal-delay-${(i % 4) + 1}`}>
+              <p class="text-lg font-heading font-semibold text-charcoal mb-1">{p.number}</p>
+              <p class="text-sm text-stone">{p.area} m²</p>
+              <p class="text-sm font-semibold text-charcoal mt-1">
+                {p.price ? `€${p.price.toLocaleString()}` : '—'}
+              </p>
+              <span class:list={[
+                'inline-block mt-2 px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
+                p.status === 'available' ? 'bg-success/10 text-success' :
+                p.status === 'reserved' ? 'bg-reserved/10 text-reserved' : 'bg-sold/10 text-sold',
+              ]}>
+                <span data-lang-bg>
+                  {p.status === 'available' ? t.apartments.filter.available.bg :
+                   p.status === 'reserved' ? t.apartments.filter.reserved.bg :
+                   t.apartments.filter.sold.bg}
+                </span>
+                <span data-lang-en>
+                  {p.status === 'available' ? t.apartments.filter.available.en :
+                   p.status === 'reserved' ? t.apartments.filter.reserved.en :
+                   t.apartments.filter.sold.en}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <!-- Places (PL1–PL4) -->
+        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-gold mb-3 reveal">
+          <span data-lang-bg>Места</span>
+          <span data-lang-en>Places</span>
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {parkingPlaces.map((p, i) => (
+            <div class={`p-4 border border-cream-dark rounded-sm text-center hover:border-gold/30 transition-colors reveal reveal-delay-${(i % 4) + 1}`}>
+              <p class="text-lg font-heading font-semibold text-charcoal mb-1">{p.number}</p>
+              <p class="text-sm text-stone">{p.area} m²</p>
+              <p class="text-sm font-semibold text-charcoal mt-1">
+                {p.price ? `€${p.price.toLocaleString()}` : '—'}
+              </p>
+              <span class:list={[
+                'inline-block mt-2 px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-sm',
+                p.status === 'available' ? 'bg-success/10 text-success' :
+                p.status === 'reserved' ? 'bg-reserved/10 text-reserved' : 'bg-sold/10 text-sold',
+              ]}>
+                <span data-lang-bg>
+                  {p.status === 'available' ? t.apartments.filter.available.bg :
+                   p.status === 'reserved' ? t.apartments.filter.reserved.bg :
+                   t.apartments.filter.sold.bg}
+                </span>
+                <span data-lang-en>
+                  {p.status === 'available' ? t.apartments.filter.available.en :
+                   p.status === 'reserved' ? t.apartments.filter.reserved.en :
+                   t.apartments.filter.sold.en}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   </main>
@@ -323,12 +647,15 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
   <!-- Apartment Detail Modal -->
   <div id="apartment-modal" class="fixed inset-0 z-[100] hidden">
     <div class="absolute inset-0 bg-dark/80 backdrop-blur-sm" id="modal-backdrop"></div>
-    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+    <div class="relative z-10 flex items-start justify-center min-h-screen p-4 py-10">
       <div class="bg-white rounded-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" id="modal-content">
         <!-- Modal header -->
-        <div class="sticky top-0 bg-charcoal p-6 flex items-center justify-between">
-          <h3 id="modal-title" class="text-xl font-heading font-semibold text-white"></h3>
-          <button id="modal-close" class="text-white/60 hover:text-white transition-colors p-1">
+        <div class="sticky top-0 bg-charcoal px-6 py-5 flex items-center justify-between z-10">
+          <div>
+            <h3 id="modal-title" class="text-xl font-heading font-semibold text-white"></h3>
+            <p id="modal-status-label" class="text-xs mt-0.5 font-medium uppercase tracking-wider"></p>
+          </div>
+          <button id="modal-close" class="text-white/50 hover:text-white transition-colors p-1 ml-4 shrink-0">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -337,29 +664,21 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
 
         <!-- Modal body -->
         <div class="p-6">
-          <!-- Floor plan placeholder -->
-          <div class="aspect-[16/10] bg-gradient-to-br from-cream-dark to-cream rounded-sm mb-6 flex items-center justify-center">
-            <div class="text-center text-stone">
-              <svg class="w-12 h-12 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-              </svg>
-              <p class="text-sm">
-                <span data-lang-bg>{t.apartments.modal.floorPlan.bg}</span>
-                <span data-lang-en>{t.apartments.modal.floorPlan.en}</span>
-              </p>
-            </div>
+          <!-- Floor plan image -->
+          <div class="overflow-hidden rounded-sm border border-cream-dark mb-6">
+            <img id="modal-floor-plan-img" src="" alt="Floor plan" class="w-full h-auto" loading="lazy" />
           </div>
 
-          <!-- Apartment description -->
+          <!-- Description -->
           <p id="modal-description" class="text-stone leading-relaxed mb-6"></p>
 
           <!-- Specs grid -->
-          <div id="modal-specs" class="grid grid-cols-2 gap-4 mb-6"></div>
+          <div id="modal-specs" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"></div>
 
           <!-- Contact CTA -->
           <a
             href="/contacts/"
-            class="block text-center py-3 bg-gold text-charcoal font-semibold text-sm uppercase tracking-wider hover:bg-gold-light transition-all rounded-sm"
+            class="block text-center py-3.5 bg-gold text-charcoal font-semibold text-sm uppercase tracking-wider hover:bg-gold-light transition-all rounded-sm"
           >
             <span data-lang-bg>{t.apartments.modal.contact.bg}</span>
             <span data-lang-en>{t.apartments.modal.contact.en}</span>
@@ -372,11 +691,12 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
   <Footer />
 </Layout>
 
-<script>
-  // Apartment data (serialized for client-side use)
-  const apartmentsData = JSON.parse(document.getElementById('apartments-data')?.textContent || '[]');
+<script type="application/json" id="apartments-data" set:html={JSON.stringify(apartments)}></script>
+<script type="application/json" id="floor-plan-images" set:html={JSON.stringify(floorPlanImages)}></script>
+<script type="application/json" id="parking-data" set:html={JSON.stringify(parkingData)}></script>
 
-  // ===== Filtering =====
+<script>
+  // ===== Filter state =====
   let activeType = 'all';
   let activeStatus = 'all';
   let activeFloor: number | null = null;
@@ -385,25 +705,19 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
   const noResults = document.getElementById('no-results')!;
 
   function applyFilters() {
-    let visibleCount = 0;
+    let visible = 0;
     cards.forEach((card) => {
-      const type = card.dataset.type;
-      const status = card.dataset.status;
-      const floor = parseInt(card.dataset.floor || '0');
-
-      const matchType = activeType === 'all' || type === activeType;
-      const matchStatus = activeStatus === 'all' || status === activeStatus;
-      const matchFloor = activeFloor === null || floor === activeFloor;
-
+      const matchType   = activeType   === 'all' || card.dataset.type   === activeType;
+      const matchStatus = activeStatus === 'all' || card.dataset.status === activeStatus;
+      const matchFloor  = activeFloor  === null  || parseInt(card.dataset.floor || '0') === activeFloor;
       if (matchType && matchStatus && matchFloor) {
         card.style.display = '';
-        visibleCount++;
+        visible++;
       } else {
         card.style.display = 'none';
       }
     });
-
-    noResults.classList.toggle('hidden', visibleCount > 0);
+    noResults.classList.toggle('hidden', visible > 0);
   }
 
   // Type filter buttons
@@ -434,36 +748,47 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
     });
   });
 
-  // Floor selector buttons
-  document.querySelectorAll<HTMLButtonElement>('.floor-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const floor = parseInt(btn.dataset.floor || '0');
+  // ===== Interactive floor plan tabs =====
+  function switchFloorPlan(floor: number) {
+    document.querySelectorAll<HTMLButtonElement>('.fp-floor-tab').forEach((t) => {
+      t.classList.remove('bg-charcoal', 'text-white', 'border-charcoal');
+      t.classList.add('bg-white', 'text-charcoal', 'border-cream-dark');
+    });
+    const activeTab = document.querySelector<HTMLButtonElement>(`.fp-floor-tab[data-fp-floor="${floor}"]`);
+    if (activeTab) {
+      activeTab.classList.remove('bg-white', 'text-charcoal', 'border-cream-dark');
+      activeTab.classList.add('bg-charcoal', 'text-white', 'border-charcoal');
+    }
+
+    document.querySelectorAll<HTMLElement>('.fp-floor-display').forEach((el) => {
+      el.style.display = 'none';
+    });
+    const display = document.querySelector<HTMLElement>(`.fp-floor-display[data-display-floor="${floor}"]`);
+    if (display) display.style.display = '';
+
+    activeFloor = floor > 0 ? floor : null;
+    applyFilters();
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.fp-floor-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const floor = parseInt(tab.dataset.fpFloor || '1');
       if (activeFloor === floor) {
+        switchFloorPlan(1);
         activeFloor = null;
-        document.querySelectorAll('.floor-btn').forEach((b) => {
-          b.classList.remove('border-gold', 'bg-gold/5');
-          b.classList.add('border-cream-dark');
-        });
+        applyFilters();
       } else {
-        activeFloor = floor;
-        document.querySelectorAll('.floor-btn').forEach((b) => {
-          b.classList.remove('border-gold', 'bg-gold/5');
-          b.classList.add('border-cream-dark');
-        });
-        btn.classList.remove('border-cream-dark');
-        btn.classList.add('border-gold', 'bg-gold/5');
+        switchFloorPlan(floor);
       }
-      applyFilters();
     });
   });
 
-  // ===== Modal =====
-  const modal = document.getElementById('apartment-modal')!;
-  const modalTitle = document.getElementById('modal-title')!;
-  const modalDesc = document.getElementById('modal-description')!;
-  const modalSpecs = document.getElementById('modal-specs')!;
+  // ===== SVG polygon apartment overlays =====
+  const fpTooltip    = document.getElementById('fp-tooltip')!;
+  const fpTtName     = document.getElementById('fp-tt-name')!;
+  const fpTtArea     = document.getElementById('fp-tt-area')!;
+  const fpTtStatus   = document.getElementById('fp-tt-status')!;
 
-  // Apartment data embedded from the server
   interface AptData {
     id: number; number: string; floor: number; type: string;
     typeLabel: { bg: string; en: string }; rooms: number; area: number;
@@ -471,58 +796,146 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
     description: { bg: string; en: string };
   }
 
-  const apartmentsList: AptData[] = [
-    {id:1,number:"A1",floor:1,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:85.4,price:185000,status:"available",description:{bg:"Просторен двустаен апартамент на първи етаж с частна градина и директен достъп до двора.",en:"Spacious 2-bedroom apartment on the first floor with a private garden and direct yard access."}},
-    {id:2,number:"A2",floor:1,type:"1BR",typeLabel:{bg:"Едностаен",en:"1 Bedroom"},rooms:1,area:62.3,price:135000,status:"sold",description:{bg:"Уютен едностаен апартамент с функционално разпределение и южно изложение.",en:"Cozy 1-bedroom apartment with a functional layout and southern exposure."}},
-    {id:3,number:"A3",floor:2,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:89.7,price:198000,status:"available",description:{bg:"Двустаен апартамент с панорамна гледка към Витоша и просторна дневна зона.",en:"2-bedroom apartment with a panoramic view of Vitosha and a spacious living area."}},
-    {id:4,number:"A4",floor:2,type:"3BR",typeLabel:{bg:"Тристаен",en:"3 Bedroom"},rooms:3,area:120.5,price:null,status:"available",description:{bg:"Луксозен тристаен апартамент с две бани, голяма тераса и гледка към планината.",en:"Luxurious 3-bedroom apartment with two bathrooms, a large terrace, and mountain views."}},
-    {id:5,number:"A5",floor:3,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:87.1,price:195000,status:"reserved",description:{bg:"Двустаен апартамент на трети етаж с отлична осветеност и балкон с гледка.",en:"2-bedroom apartment on the third floor with excellent natural light and a balcony with views."}},
-    {id:6,number:"A6",floor:3,type:"1BR",typeLabel:{bg:"Едностаен",en:"1 Bedroom"},rooms:1,area:64.8,price:142000,status:"available",description:{bg:"Компактен и модерен едностаен апартамент, идеален за млади професионалисти.",en:"Compact and modern 1-bedroom apartment, ideal for young professionals."}},
-    {id:7,number:"A7",floor:4,type:"3BR",typeLabel:{bg:"Тристаен",en:"3 Bedroom"},rooms:3,area:135.2,price:null,status:"available",description:{bg:"Пентхаус тристаен апартамент с голяма тераса, панорамна гледка и две бани. Най-ексклузивният в сградата.",en:"Penthouse 3-bedroom apartment with a large terrace, panoramic views, and two bathrooms. The most exclusive in the building."}},
-    {id:8,number:"A8",floor:4,type:"2BR",typeLabel:{bg:"Двустаен",en:"2 Bedroom"},rooms:2,area:91.3,price:210000,status:"available",description:{bg:"Двустаен апартамент на последен етаж с висок таван и уникален характер.",en:"2-bedroom apartment on the top floor with high ceilings and unique character."}},
-  ];
+  const apartmentsList: AptData[] = JSON.parse(
+    document.getElementById('apartments-data')!.textContent!
+  );
+
+  const statusLabels: Record<string, { bg: string; en: string; color: string }> = {
+    available: { bg: 'Свободен',   en: 'Available', color: 'text-[#7ecba0]' },
+    reserved:  { bg: 'Резервиран', en: 'Reserved',  color: 'text-[#d4bc8b]' },
+    sold:      { bg: 'Продаден',   en: 'Sold',      color: 'text-[#d47a7a]' },
+  };
+
+  document.querySelectorAll<SVGPolygonElement>('.fp-apt-polygon').forEach((poly) => {
+    const id = parseInt(poly.dataset.aptId || '0');
+
+    poly.addEventListener('mouseenter', () => {
+      poly.setAttribute('fill-opacity', '0.45');
+
+      const apt = apartmentsList.find((a) => a.id === id);
+      if (!apt) return;
+      const lang = document.documentElement.getAttribute('data-lang') || 'bg';
+      const sl   = statusLabels[apt.status];
+
+      fpTtName.textContent   = `${lang === 'bg' ? 'Ап.' : 'Apt.'} ${apt.number} — ${lang === 'bg' ? apt.typeLabel.bg : apt.typeLabel.en}`;
+      fpTtArea.textContent   = `${apt.area} m²`;
+      fpTtStatus.textContent = lang === 'bg' ? sl.bg : sl.en;
+      fpTtStatus.className   = `block text-[11px] font-semibold mb-1.5 ${sl.color}`;
+      fpTooltip.classList.remove('hidden');
+    });
+
+    poly.addEventListener('mousemove', (e) => {
+      const offset = 18;
+      let x = e.clientX + offset;
+      let y = e.clientY - 90;
+      if (x + 170 > window.innerWidth) x = e.clientX - 170 - offset;
+      if (y < 8) y = e.clientY + offset;
+      fpTooltip.style.left = x + 'px';
+      fpTooltip.style.top  = y + 'px';
+    });
+
+    poly.addEventListener('mouseleave', () => {
+      poly.setAttribute('fill-opacity', '0.22');
+      fpTooltip.classList.add('hidden');
+    });
+
+    poly.addEventListener('click', () => {
+      fpTooltip.classList.add('hidden');
+      openModal(id);
+    });
+  });
+
+  // ===== SVG polygon parking overlays =====
+  interface ParkingItemData {
+    number: string;
+    kind: 'garage' | 'parking' | 'place';
+    area: number;
+    price: number | null;
+    status: string;
+  }
+
+  const parkingList: ParkingItemData[] = JSON.parse(
+    document.getElementById('parking-data')!.textContent!
+  );
+
+  const parkKindLabels: Record<string, { bg: string; en: string }> = {
+    garage:  { bg: 'Гараж',      en: 'Garage'       },
+    parking: { bg: 'Паркомясто', en: 'Parking Spot'  },
+    place:   { bg: 'Място',      en: 'Place'         },
+  };
+
+  document.querySelectorAll<SVGPolygonElement>('.fp-park-polygon').forEach((poly) => {
+    const pid = poly.dataset.parkId!;
+
+    poly.addEventListener('mouseenter', () => {
+      poly.setAttribute('fill-opacity', '0.45');
+      const item = parkingList.find((p) => p.number === pid);
+      if (!item) return;
+      const lang = document.documentElement.getAttribute('data-lang') || 'bg';
+      const sl   = statusLabels[item.status];
+      const kl   = parkKindLabels[item.kind];
+      fpTtName.textContent   = `${item.number} — ${lang === 'bg' ? kl.bg : kl.en}`;
+      fpTtArea.textContent   = `${item.area} m²  ${item.price ? '€' + item.price.toLocaleString() : ''}`;
+      fpTtStatus.textContent = lang === 'bg' ? sl.bg : sl.en;
+      fpTtStatus.className   = `block text-[11px] font-semibold mb-1.5 ${sl.color}`;
+      fpTooltip.classList.remove('hidden');
+    });
+
+    poly.addEventListener('mousemove', (e) => {
+      const offset = 18;
+      let x = e.clientX + offset;
+      let y = e.clientY - 90;
+      if (x + 170 > window.innerWidth) x = e.clientX - 170 - offset;
+      if (y < 8) y = e.clientY + offset;
+      fpTooltip.style.left = x + 'px';
+      fpTooltip.style.top  = y + 'px';
+    });
+
+    poly.addEventListener('mouseleave', () => {
+      poly.setAttribute('fill-opacity', '0.22');
+      fpTooltip.classList.add('hidden');
+    });
+  });
+
+  // ===== Modal =====
+  const modal             = document.getElementById('apartment-modal')!;
+  const modalTitle        = document.getElementById('modal-title')!;
+  const modalStatusLabel  = document.getElementById('modal-status-label')!;
+  const modalDesc         = document.getElementById('modal-description')!;
+  const modalSpecs        = document.getElementById('modal-specs')!;
+  const modalFloorPlanImg = document.getElementById('modal-floor-plan-img') as HTMLImageElement;
+
+  const floorPlanMap: Record<number, string> = JSON.parse(
+    document.getElementById('floor-plan-images')!.textContent!
+  );
 
   function openModal(id: number) {
-    const apt = apartmentsList.find(a => a.id === id);
+    const apt = apartmentsList.find((a) => a.id === id);
     if (!apt) return;
 
     const lang = document.documentElement.getAttribute('data-lang') || 'bg';
+    const sl   = statusLabels[apt.status];
 
-    modalTitle.textContent = `${lang === 'bg' ? 'Апартамент' : 'Apartment'} ${apt.number}`;
-    modalDesc.textContent = lang === 'bg' ? apt.description.bg : apt.description.en;
+    modalTitle.textContent        = `${lang === 'bg' ? 'Апартамент' : 'Apartment'} ${apt.number}`;
+    modalStatusLabel.textContent  = lang === 'bg' ? sl.bg : sl.en;
+    modalStatusLabel.className    = `text-xs mt-0.5 font-medium uppercase tracking-wider ${sl.color}`;
+    modalDesc.textContent         = lang === 'bg' ? apt.description.bg : apt.description.en;
+    modalFloorPlanImg.src         = floorPlanMap[apt.floor] || '';
+    modalFloorPlanImg.alt         = `Floor ${apt.floor} plan`;
 
-    const statusLabels: Record<string, { bg: string; en: string }> = {
-      available: { bg: 'Свободен', en: 'Available' },
-      reserved: { bg: 'Резервиран', en: 'Reserved' },
-      sold: { bg: 'Продаден', en: 'Sold' },
-    };
-
-    modalSpecs.innerHTML = `
+    modalSpecs.innerHTML = [
+      [lang === 'bg' ? 'Тип'    : 'Type',   lang === 'bg' ? apt.typeLabel.bg : apt.typeLabel.en],
+      [lang === 'bg' ? 'Етаж'   : 'Floor',  String(apt.floor)],
+      [lang === 'bg' ? 'Площ'   : 'Area',   `${apt.area} m²`],
+      [lang === 'bg' ? 'Стаи'   : 'Rooms',  String(apt.rooms)],
+      [lang === 'bg' ? 'Цена'   : 'Price',  apt.price ? `€${apt.price.toLocaleString()}` : (lang === 'bg' ? 'При запитване' : 'On request')],
+      [lang === 'bg' ? 'Статус' : 'Status', lang === 'bg' ? sl.bg : sl.en],
+    ].map(([label, value]) => `
       <div class="p-3 bg-cream rounded-sm">
-        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Тип' : 'Type'}</p>
-        <p class="font-semibold text-charcoal">${lang === 'bg' ? apt.typeLabel.bg : apt.typeLabel.en}</p>
+        <p class="text-xs text-stone uppercase tracking-wider">${label}</p>
+        <p class="font-semibold text-charcoal mt-0.5">${value}</p>
       </div>
-      <div class="p-3 bg-cream rounded-sm">
-        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Етаж' : 'Floor'}</p>
-        <p class="font-semibold text-charcoal">${apt.floor}</p>
-      </div>
-      <div class="p-3 bg-cream rounded-sm">
-        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Площ' : 'Area'}</p>
-        <p class="font-semibold text-charcoal">${apt.area} m²</p>
-      </div>
-      <div class="p-3 bg-cream rounded-sm">
-        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Стаи' : 'Rooms'}</p>
-        <p class="font-semibold text-charcoal">${apt.rooms}</p>
-      </div>
-      <div class="p-3 bg-cream rounded-sm">
-        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Цена' : 'Price'}</p>
-        <p class="font-semibold text-charcoal">${apt.price ? '€' + apt.price.toLocaleString() : (lang === 'bg' ? 'При запитване' : 'On request')}</p>
-      </div>
-      <div class="p-3 bg-cream rounded-sm">
-        <p class="text-xs text-stone uppercase tracking-wider">${lang === 'bg' ? 'Статус' : 'Status'}</p>
-        <p class="font-semibold text-charcoal">${lang === 'bg' ? statusLabels[apt.status].bg : statusLabels[apt.status].en}</p>
-      </div>
-    `;
+    `).join('');
 
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -534,15 +947,10 @@ import { apartments, garages, apartmentTypes, statusOptions } from '../data/apar
   }
 
   document.querySelectorAll<HTMLButtonElement>('.apartment-detail-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = parseInt(btn.dataset.apartmentId || '0');
-      openModal(id);
-    });
+    btn.addEventListener('click', () => openModal(parseInt(btn.dataset.apartmentId || '0')));
   });
 
   document.getElementById('modal-close')?.addEventListener('click', closeModal);
   document.getElementById('modal-backdrop')?.addEventListener('click', closeModal);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 </script>
