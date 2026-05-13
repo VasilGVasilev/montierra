@@ -15,6 +15,24 @@ export const t = {
       en: 'Boutique residential living at the foot of Vitosha',
     },
     cta: { bg: 'Разгледай апартаментите', en: 'View Apartments' },
+    gallery: {
+      title: { bg: 'Визуализации', en: 'Visualizations' },
+    },
+    about: {
+      label: { bg: 'За проекта', en: 'About the Project' },
+      title: { bg: 'Живот в хармония с природата', en: 'Living in Harmony with Nature' },
+      text: {
+        bg: 'Монтиера предлага изключително камерна атмосфера — само 8 апартамента в полите на Витоша, проектирани за тези, които ценят спокойствието, простора и високото качество на живот.',
+        en: 'Montierra offers an exceptionally intimate atmosphere — just 8 apartments at the foot of Vitosha, designed for those who value tranquility, space, and a high quality of life.',
+      },
+      link: { bg: 'Научете повече', en: 'Learn More' },
+    },
+    stats: {
+      apartments: { bg: 'Апартамента', en: 'Apartments' },
+      floors: { bg: 'Етажа', en: 'Floors' },
+      garages: { bg: 'Гаража', en: 'Garages' },
+      completion: { bg: 'Завършване', en: 'Completion' },
+    },
     features: {
       location: {
         title: { bg: 'Изключително местоположение', en: 'Prime Location' },

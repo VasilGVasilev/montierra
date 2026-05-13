@@ -170,6 +170,16 @@ Three apartment statuses map to three semantic color tokens:
 
 ---
 
+### 2026-05-13 — Move hardcoded home-page strings into translations.ts
+
+**Problem:** Ten strings in `src/pages/index.astro` were hardcoded directly as span content rather than being sourced from `src/i18n/translations.ts`. Affected strings: gallery section title, about-teaser label/heading/body/link, and all four stats labels.
+
+**Fix:** Added `home.gallery`, `home.about`, and `home.stats` keys to `translations.ts`. Updated all ten occurrences in `index.astro` to reference `t.home.*`. Also normalised the about-teaser body paragraph from two sibling `<p data-lang-*>` elements to a single `<p>` with two inner spans, consistent with the rest of the codebase.
+
+**Files changed:** `src/i18n/translations.ts`, `src/pages/index.astro`
+
+---
+
 ### 2026-05-04 — Remove auto-scroll on floor tab click
 
 **Problem:** Clicking a floor tab in the interactive floor plan section scrolled the page down to the apartment cards filter section (`#apartments-section`), taking the user away from the floor plan image they just selected.
