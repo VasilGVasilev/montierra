@@ -14,6 +14,7 @@ export const t = {
       bg: 'Бутиково жилищно строителство в полите на Витоша',
       en: 'Boutique residential living at the foot of Vitosha',
     },
+    location: { bg: 'Драгалевци, София', en: 'Dragalevtsi, Sofia' },
     cta: { bg: 'Разгледай апартаментите', en: 'View Apartments' },
     gallery: {
       title: { bg: 'Визуализации', en: 'Visualizations' },

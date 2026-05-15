@@ -187,3 +187,57 @@ Three apartment statuses map to three semantic color tokens:
 **Fix:** Removed the `scrollIntoView` call from the floor tab click handler. The view now stays on the floor plan immediately below the tabs.
 
 **Files changed:** `src/pages/apartments.astro`
+
+---
+
+### 2026-05-15 — Translate and bold the hero location label; add to header
+
+**Problem:** "Драгалевци, София" in the hero section was hardcoded Bulgarian-only text with no English translation, and visually too light. Location was absent from the header.
+
+**Fix:** Added `home.location` key (`{ bg: 'Драгалевци, София', en: 'Dragalevtsi, Sofia' }`) to `translations.ts`. Updated `index.astro` to render it with paired `data-lang-bg` / `data-lang-en` spans at `text-lg md:text-2xl tracking-[0.5em] font-bold drop-shadow-lg`. Added the same location label (smaller: `text-xs tracking-[0.35em]`, hidden on mobile) next to the logo in `Header.astro`.
+
+**Files changed:** `src/i18n/translations.ts`, `src/pages/index.astro`, `src/components/Header.astro`
+
+---
+
+### 2026-05-15 — Extract gallery into GalleryLightbox component with lightbox viewer
+
+**Problem:** Gallery section in `index.astro` had 5 near-identical image blocks repeated inline. No way to view full-size images.
+
+**Fix:** Created `src/components/GalleryLightbox.astro`. Images defined as a single data array — one loop renders the grid, eliminating all repetition. Clicking any image opens a full-screen lightbox with the image, prev/next arrows (← →), a counter (`1 / 5`), a close button, and ESC / click-outside to dismiss. `index.astro` now uses `<GalleryLightbox />` in place of the old inline grid.
+
+**Files changed:** `src/components/GalleryLightbox.astro` (new), `src/pages/index.astro`
+
+---
+
+### 2026-05-15 — Decouple apartment card filter from floor plan tab selection
+
+**Problem:** Selecting a floor tab in the interactive floor plan also filtered the apartment cards below, showing only apartments on that floor. Type and status filters could not be applied across all floors simultaneously.
+
+**Fix:** Removed `activeFloor` state and the `matchFloor` check from `applyFilters()`. Removed the `applyFilters()` call from `switchFloorPlan()`. Floor tabs now only control the floor plan viewer; type and status filters always act on all 8 apartments.
+
+**Files changed:** `src/pages/apartments.astro`
+
+---
+
+### 2026-05-15 — Hide "Click for details" tooltip hint on parking polygon hover
+
+**Problem:** The floating tooltip shown on SVG polygon hover always displayed "Кликни за детайли / Click for details", even over parking polygons which have no modal.
+
+**Fix:** Added `id="fp-tt-click-hint"` to the hint span. Apartment polygon `mouseenter` restores it (`display: ''`); parking polygon `mouseenter` hides it (`display: none`).
+
+**Files changed:** `src/pages/apartments.astro`
+
+---
+
+### 2026-05-15 — Cursor and interactivity polish on apartments page
+
+**Changes:**
+- Parking SVG polygons: changed inline style from `cursor:pointer` to `cursor:default` — they are hover-only, no click action.
+- Floor tabs, type filter buttons, status filter buttons: added `cursor-pointer` Tailwind class.
+- Apartment detail ("Детайли") button on each card: added `cursor-pointer`.
+- Modal outer container (`#apartment-modal`): added `cursor-pointer` so hovering outside the white card signals it is dismissible.
+- Modal content (`#modal-content`): added `cursor-default` to reset cursor inside the card.
+- Modal dismiss: replaced `modal-backdrop` click listener with a listener on `#apartment-modal` that closes unless the click target is contained within `#modal-content` — fixes the flex wrapper intercepting clicks before they reached the backdrop.
+
+**Files changed:** `src/pages/apartments.astro`

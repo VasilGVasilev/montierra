@@ -109,7 +109,7 @@ const floors = [4, 3, 2, 1, 0] as const;
     <span id="fp-tt-name" class="block font-semibold mb-1 text-white"></span>
     <span id="fp-tt-area" class="block text-white/60 text-[11px] mb-1"></span>
     <span id="fp-tt-status" class="block text-[11px] font-semibold mb-1.5"></span>
-    <span class="block text-[10px] text-gold uppercase tracking-wider">
+    <span id="fp-tt-click-hint" class="block text-[10px] text-gold uppercase tracking-wider">
       <span data-lang-bg>Кликни за детайли</span>
       <span data-lang-en>Click for details</span>
     </span>
@@ -160,7 +160,7 @@ const floors = [4, 3, 2, 1, 0] as const;
             <button
               data-fp-floor={floor}
               class:list={[
-                'fp-floor-tab px-5 py-2.5 text-sm font-medium border transition-all rounded-sm',
+                'fp-floor-tab px-5 py-2.5 text-sm font-medium border transition-all rounded-sm cursor-pointer',
                 floor === 1
                   ? 'bg-charcoal text-white border-charcoal'
                   : 'bg-white text-charcoal border-cream-dark hover:border-gold/50',
@@ -268,7 +268,7 @@ const floors = [4, 3, 2, 1, 0] as const;
                               stroke-width="14"
                               stroke-linejoin="round"
                               class="fp-park-polygon"
-                              style="cursor:pointer;"
+                              style="cursor:default;"
                               data-park-id={item.number}
                             />
                             {lbl && (
@@ -380,7 +380,7 @@ const floors = [4, 3, 2, 1, 0] as const;
               <button
                 data-filter-type={type.value}
                 class:list={[
-                  'filter-type-btn px-4 py-2 text-sm border rounded-sm transition-all',
+                  'filter-type-btn px-4 py-2 text-sm border rounded-sm transition-all cursor-pointer',
                   type.value === 'all'
                     ? 'bg-charcoal text-white border-charcoal'
                     : 'bg-white text-charcoal border-cream-dark hover:border-gold/50',
@@ -402,7 +402,7 @@ const floors = [4, 3, 2, 1, 0] as const;
               <button
                 data-filter-status={status.value}
                 class:list={[
-                  'filter-status-btn px-4 py-2 text-sm border rounded-sm transition-all',
+                  'filter-status-btn px-4 py-2 text-sm border rounded-sm transition-all cursor-pointer',
                   status.value === 'all'
                     ? 'bg-charcoal text-white border-charcoal'
                     : 'bg-white text-charcoal border-cream-dark hover:border-gold/50',
@@ -509,7 +509,7 @@ const floors = [4, 3, 2, 1, 0] as const;
                 </div>
 
                 <button
-                  class="apartment-detail-btn w-full py-2.5 text-sm font-medium uppercase tracking-wider border border-gold text-gold hover:bg-gold hover:text-charcoal transition-all rounded-sm"
+                  class="apartment-detail-btn w-full py-2.5 text-sm font-medium uppercase tracking-wider border border-gold text-gold hover:bg-gold hover:text-charcoal transition-all rounded-sm cursor-pointer"
                   data-apartment-id={apt.id}
                 >
                   <span data-lang-bg>{t.apartments.card.details.bg}</span>
@@ -645,17 +645,17 @@ const floors = [4, 3, 2, 1, 0] as const;
   </main>
 
   <!-- Apartment Detail Modal -->
-  <div id="apartment-modal" class="fixed inset-0 z-[100] hidden">
+  <div id="apartment-modal" class="fixed inset-0 z-[100] hidden cursor-pointer">
     <div class="absolute inset-0 bg-dark/80 backdrop-blur-sm" id="modal-backdrop"></div>
     <div class="relative z-10 flex items-start justify-center min-h-screen p-4 py-10">
-      <div class="bg-white rounded-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" id="modal-content">
+      <div class="bg-white rounded-sm max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl cursor-default" id="modal-content">
         <!-- Modal header -->
         <div class="sticky top-0 bg-charcoal px-6 py-5 flex items-center justify-between z-10">
           <div>
             <h3 id="modal-title" class="text-xl font-heading font-semibold text-white"></h3>
             <p id="modal-status-label" class="text-xs mt-0.5 font-medium uppercase tracking-wider"></p>
           </div>
-          <button id="modal-close" class="text-white/50 hover:text-white transition-colors p-1 ml-4 shrink-0">
+          <button id="modal-close" class="text-white/50 hover:text-white transition-colors p-1 ml-4 shrink-0 cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -699,7 +699,6 @@ const floors = [4, 3, 2, 1, 0] as const;
   // ===== Filter state =====
   let activeType = 'all';
   let activeStatus = 'all';
-  let activeFloor: number | null = null;
 
   const cards = document.querySelectorAll<HTMLElement>('.apartment-card');
   const noResults = document.getElementById('no-results')!;
@@ -709,8 +708,7 @@ const floors = [4, 3, 2, 1, 0] as const;
     cards.forEach((card) => {
       const matchType   = activeType   === 'all' || card.dataset.type   === activeType;
       const matchStatus = activeStatus === 'all' || card.dataset.status === activeStatus;
-      const matchFloor  = activeFloor  === null  || parseInt(card.dataset.floor || '0') === activeFloor;
-      if (matchType && matchStatus && matchFloor) {
+      if (matchType && matchStatus) {
         card.style.display = '';
         visible++;
       } else {
@@ -766,28 +764,20 @@ const floors = [4, 3, 2, 1, 0] as const;
     const display = document.querySelector<HTMLElement>(`.fp-floor-display[data-display-floor="${floor}"]`);
     if (display) display.style.display = '';
 
-    activeFloor = floor > 0 ? floor : null;
-    applyFilters();
   }
 
   document.querySelectorAll<HTMLButtonElement>('.fp-floor-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
-      const floor = parseInt(tab.dataset.fpFloor || '1');
-      if (activeFloor === floor) {
-        switchFloorPlan(1);
-        activeFloor = null;
-        applyFilters();
-      } else {
-        switchFloorPlan(floor);
-      }
+      switchFloorPlan(parseInt(tab.dataset.fpFloor || '1'));
     });
   });
 
   // ===== SVG polygon apartment overlays =====
-  const fpTooltip    = document.getElementById('fp-tooltip')!;
-  const fpTtName     = document.getElementById('fp-tt-name')!;
-  const fpTtArea     = document.getElementById('fp-tt-area')!;
-  const fpTtStatus   = document.getElementById('fp-tt-status')!;
+  const fpTooltip      = document.getElementById('fp-tooltip')!;
+  const fpTtName       = document.getElementById('fp-tt-name')!;
+  const fpTtArea       = document.getElementById('fp-tt-area')!;
+  const fpTtStatus     = document.getElementById('fp-tt-status')!;
+  const fpTtClickHint  = document.getElementById('fp-tt-click-hint')!;
 
   interface AptData {
     id: number; number: string; floor: number; type: string;
@@ -811,6 +801,7 @@ const floors = [4, 3, 2, 1, 0] as const;
 
     poly.addEventListener('mouseenter', () => {
       poly.setAttribute('fill-opacity', '0.45');
+      fpTtClickHint.style.display = '';
 
       const apt = apartmentsList.find((a) => a.id === id);
       if (!apt) return;
@@ -869,6 +860,7 @@ const floors = [4, 3, 2, 1, 0] as const;
 
     poly.addEventListener('mouseenter', () => {
       poly.setAttribute('fill-opacity', '0.45');
+      fpTtClickHint.style.display = 'none';
       const item = parkingList.find((p) => p.number === pid);
       if (!item) return;
       const lang = document.documentElement.getAttribute('data-lang') || 'bg';
@@ -951,6 +943,8 @@ const floors = [4, 3, 2, 1, 0] as const;
   });
 
   document.getElementById('modal-close')?.addEventListener('click', closeModal);
-  document.getElementById('modal-backdrop')?.addEventListener('click', closeModal);
+  document.getElementById('apartment-modal')?.addEventListener('click', (e) => {
+    if (!document.getElementById('modal-content')?.contains(e.target as Node)) closeModal();
+  });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 </script>

@@ -21,7 +21,7 @@ const navItems = [
     <div class="flex items-center justify-between h-20">
       <!-- Logo -->
       <a href="/" class="flex items-center">
-        <img src="/logo.JPG" alt="Montierra Luxury Residence" class="h-12 w-12 object-cover rounded-sm hover:opacity-90 transition-opacity" />
+        <img src="/logo.JPG" alt="Montierra Luxury Residence" class="h-[62px] w-[62px] object-cover rounded-sm hover:opacity-90 transition-opacity" />
       </a>
 
       <!-- Desktop Navigation -->
@@ -32,7 +32,7 @@ const navItems = [
             class:list={[
               'text-sm uppercase tracking-wider transition-colors duration-300',
               currentPage === item.key
-                ? 'text-gold font-semibold'
+                ? 'text-gold font-semibold [text-shadow:-1px_-1px_0_#000,1px_-1px_0_#000,-1px_1px_0_#000,1px_1px_0_#000]'
                 : 'text-white/80 hover:text-gold',
             ]}
           >
@@ -77,7 +77,7 @@ const navItems = [
           class:list={[
             'text-lg uppercase tracking-wider py-2 transition-colors',
             currentPage === item.key
-              ? 'text-gold font-semibold'
+              ? 'text-gold font-semibold [text-shadow:-1px_-1px_0_#000,1px_-1px_0_#000,-1px_1px_0_#000,1px_1px_0_#000]'
               : 'text-white/80 hover:text-gold',
           ]}
         >

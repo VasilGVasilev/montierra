@@ -1,0 +1,104 @@
+---
+const images = [
+  { src: '/images/visualizations/5.jpg', alt: 'Montierra entrance view',  wrapperClass: 'col-span-2 lg:col-span-2 lg:row-span-2', imgClass: 'w-full h-full object-cover aspect-[4/3] lg:aspect-auto', delay: '' },
+  { src: '/images/visualizations/1.jpg', alt: 'Montierra garden view',    wrapperClass: '',                                          imgClass: 'w-full h-48 md:h-56 lg:h-full object-cover',           delay: 'reveal-delay-1' },
+  { src: '/images/visualizations/3.jpg', alt: 'Montierra facade detail',  wrapperClass: '',                                          imgClass: 'w-full h-48 md:h-56 lg:h-full object-cover',           delay: 'reveal-delay-2' },
+  { src: '/images/visualizations/4.jpg', alt: 'Montierra roof detail',    wrapperClass: '',                                          imgClass: 'w-full h-48 md:h-56 object-cover',                     delay: 'reveal-delay-3' },
+  { src: '/images/visualizations/2.jpg', alt: 'Montierra street view',    wrapperClass: '',                                          imgClass: 'w-full h-48 md:h-56 object-cover',                     delay: 'reveal-delay-4' },
+];
+---
+
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+  {images.map((img, i) => (
+    <button
+      type="button"
+      data-gallery-index={i}
+      class:list={['overflow-hidden rounded-sm reveal cursor-zoom-in text-left', img.wrapperClass, img.delay]}
+    >
+      <img
+        src={img.src}
+        alt={img.alt}
+        class:list={[img.imgClass, 'hover:scale-[1.03] transition-transform duration-700 pointer-events-none']}
+      />
+    </button>
+  ))}
+</div>
+
+<!-- Lightbox -->
+<div
+  id="gallery-lightbox"
+  class="fixed inset-0 z-50 bg-black/92 hidden items-center justify-center"
+  role="dialog"
+  aria-modal="true"
+>
+  <div id="lightbox-backdrop" class="absolute inset-0"></div>
+
+  <button id="lightbox-close" class="absolute top-4 right-5 z-10 text-white/70 hover:text-white transition-colors" aria-label="Close">
+    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+
+  <button id="lightbox-prev" class="absolute left-4 z-10 text-white/70 hover:text-white transition-colors p-2" aria-label="Previous image">
+    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
+    </svg>
+  </button>
+
+  <img id="lightbox-img" src="" alt="" class="relative z-10 max-h-[90vh] max-w-[90vw] object-contain select-none" />
+
+  <button id="lightbox-next" class="absolute right-4 z-10 text-white/70 hover:text-white transition-colors p-2" aria-label="Next image">
+    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+
+  <p id="lightbox-counter" class="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 text-white/50 text-sm tabular-nums"></p>
+</div>
+
+<script>
+  const srcs = [
+    '/images/visualizations/5.jpg',
+    '/images/visualizations/1.jpg',
+    '/images/visualizations/3.jpg',
+    '/images/visualizations/4.jpg',
+    '/images/visualizations/2.jpg',
+  ];
+
+  let current = 0;
+
+  const lightbox  = document.getElementById('gallery-lightbox')!;
+  const img       = document.getElementById('lightbox-img') as HTMLImageElement;
+  const counter   = document.getElementById('lightbox-counter')!;
+
+  function show(index: number) {
+    current = (index + srcs.length) % srcs.length;
+    img.src = srcs[current];
+    counter.textContent = `${current + 1} / ${srcs.length}`;
+    lightbox.classList.remove('hidden');
+    lightbox.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    lightbox.classList.add('hidden');
+    lightbox.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-gallery-index]').forEach((btn) => {
+    btn.addEventListener('click', () => show(Number(btn.dataset.galleryIndex)));
+  });
+
+  document.getElementById('lightbox-close')!.addEventListener('click', close);
+  document.getElementById('lightbox-backdrop')!.addEventListener('click', close);
+  document.getElementById('lightbox-prev')!.addEventListener('click', () => show(current - 1));
+  document.getElementById('lightbox-next')!.addEventListener('click', () => show(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (lightbox.classList.contains('hidden')) return;
+    if (e.key === 'Escape')     close();
+    if (e.key === 'ArrowLeft')  show(current - 1);
+    if (e.key === 'ArrowRight') show(current + 1);
+  });
+</script>
